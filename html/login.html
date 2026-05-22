@@ -27,9 +27,26 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="Insira sua senha" required>
+                <label for="senha">Senha</label>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Insira sua senha"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        onclick="toggleSenha()"
+                        id="btnSenha"
+                    >
+                        Mostrar
+                    </button>
                 </div>
+            </div>
 
                 <div class="remember-forgot">
                     <label class="remember">
@@ -47,5 +64,19 @@
             </div>
         </div>
     </main>
+    <script>
+        function toggleSenha() {
+            const input = document.getElementById("senha");
+            const botao = document.getElementById("btnSenha");
+
+            if (input.type === "password") {
+                input.type = "text";
+                botao.textContent = "Ocultar";
+            } else {
+                input.type = "password";
+                botao.textContent = "Mostrar";
+            }
+        }
+    </script>
 </body>
 </html>
