@@ -119,6 +119,7 @@ main.login-container {
 
 .form-group input[type="text"],
 .form-group input[type="password"] {
+    width: 100%;
     padding: 12px 14px;
     border: 2px solid #1d962c;
     border-radius: 6px;
