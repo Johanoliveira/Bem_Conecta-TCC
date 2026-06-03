@@ -48,7 +48,7 @@
 
           <div class="remember-forgot">
             <label class="remember">
-              <input type="checkbox" name="lembrar" />
+              <input type="checkbox" name="lembrar" id="lembrar" />
               Lembrar-me
             </label>
             <a href="#recuperar" class="forgot-link">Esqueceu a senha?</a>
@@ -65,19 +65,5 @@
         </div>
       </div>
     </main>
-    <script>
-      function toggleSenha() {
-        const input = document.getElementById("senha");
-        const botao = document.getElementById("btnSenha");
-
-        if (input.type === "password") {
-          input.type = "text";
-          botao.textContent = "Ocultar";
-        } else {
-          input.type = "password";
-          botao.textContent = "Mostrar";
-        }
-      }
-    </script>
   </body>
 </html>
