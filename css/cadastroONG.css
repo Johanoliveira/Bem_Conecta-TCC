@@ -1,0 +1,218 @@
+/* ===== Global Styles ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: transparent;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+        url("../img/imgong.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== Header ===== */
+header {
+    background-color: #1b9e2a;
+    color: #fff;
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(34, 77, 32, 0.08);
+}
+
+header > div {
+    display: flex;
+    align-items: center;
+    margin: 0 24px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-section img {
+    height: 50px;
+}
+
+.logo-section span {
+    font-size: 1.7em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #2ecc40;
+    background: #fff;
+    border: 2px solid #1d962c;
+    border-radius: 4px;
+    padding: 8px 18px;
+    font-weight: bold;
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-links a:hover {
+    background: #27ae60;
+    color: #fff;
+    border-color: #27ae60;
+}
+
+/* ===== Main ===== */
+main.cadastro-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+    padding: 40px 20px;
+}
+
+/* ===== Card ===== */
+.cadastro-card {
+    width: 100%;
+    max-width: 700px;
+    padding: 50px;
+    border-radius: 12px;
+
+    background: rgba(176, 197, 175, 0.41);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(34, 77, 32, 0.12);
+}
+
+.cadastro-card h1 {
+    text-align: center;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+/* ===== Form ===== */
+.cadastro-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #f4f4f4;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="password"],
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #1d962c;
+    border-radius: 6px;
+    background: #f5f5f5;
+    color: #234d20;
+    font-size: 1em;
+    transition: 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2ecc40;
+    background: #fff;
+}
+
+.form-group input::placeholder {
+    color: #999;
+}
+
+/* ===== Checkbox ===== */
+.form-group label input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.form-group label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+    font-weight: normal;
+}
+
+/* ===== Button ===== */
+.Cadastro-btn {
+    margin-top: 10px;
+    background-color: #1b9e2a;
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color .2s, transform .2s;
+}
+
+.Cadastro-btn:hover {
+    background-color: #2ecc40;
+    transform: scale(1.02);
+}
+
+.Cadastro-btn:active {
+    transform: scale(.98);
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+
+    header {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    header > div {
+        margin: 0;
+    }
+
+    .cadastro-card {
+        padding: 30px 20px;
+    }
+
+    .cadastro-card h1 {
+        font-size: 1.7em;
+    }
+
+    .logo-section span {
+        font-size: 1.4em;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .cadastro-card {
+        padding: 25px 15px;
+    }
+
+    .Cadastro-btn {
+        width: 100%;
+    }
+}
