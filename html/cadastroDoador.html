@@ -6,6 +6,7 @@
     <title>Cadastro - Bem Conecta</title>
     <link rel="stylesheet" href="../css/cadastroDoador.css" />
   </head>
+  <script src="../js/cadastroDoador.js"></script>
   <body>
     <header>
       <div class="logo-section">
@@ -16,92 +17,93 @@
         <a href="../html/cadastro.html">Voltar</a>
       </div>
     </header>
-
     <main class="cadastro-container">
       <div class="cadastro-card">
         <h1>Cadastre-se</h1>
-        <form class="cadastro-form">
-          <div class="form-group">
-            <label for="usuario">Usuário</label>
-            <input
-              type="text"
-              id="usuario"
-              name="usuario"
-              placeholder="Insira seu nome de usuário"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="cpf">Data-Nascimento</label>
-            <input
-              type="date"
-              id="data-nascimento"
-              name="data-nascimento"
-              placeholder="DD/MM/AAAA"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Insira seu email"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="telefone">Telefone</label>
-            <input
-              type="tel"
-              id="telefone"
-              name="telefone"
-              placeholder="Insira seu telefone"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="senha">Senha</label>
-
-            <div>
+        <form class="cadastro-form" id="cadastroForm">
+          <div class="form-group etapa ativa">
+              <label for="usuario">Usuário</label>
               <input
-                type="password"
-                id="senha"
-                name="senha"
-                placeholder="Insira sua senha"
-                required
-              />
+                  type="text"
+                  id="usuario"
+                  name="usuario"
+                  placeholder="Insira seu nome de usuário"
+                  required
+              >
           </div>
-          <br>
-          <div class="form-group">
-            <label for="confirmar-senha">Confirmar Senha</label>
-            <input
-              type="password"
-              id="confirmar-senha"
-              name="confirmar-senha"
-              placeholder="Confirme sua senha"
-              required
-            />
+
+          <div class="form-group etapa">
+              <label for="data-nascimento">Data de nascimento</label>
+              <input
+                  type="date"
+                  id="data-nascimento"
+                  name="data-nascimento"
+                  required
+              >
           </div>
-        <br>
-          <div class="form-group">
-            <label for="termos">
-              <input type="checkbox" id="termos" name="termos" required />
-              Li e estou de acordo com os Termos de Uso e a Política de Privacidade da Bem_Conecta.
-            </label>
-            </div>
-            <br>
-          <button type="submit" class="Cadastro-btn">Cadastrar</button>
-        </form>
-        <p class="login-link">
-          Já tem uma conta?
-          <a href="../html/login.html">Faça login aqui!</a>
-        </p>
+
+          <div class="form-group etapa">
+              <label for="email">Email</label>
+              <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Insira seu email"
+                  required
+              >
+          </div>
+
+          <div class="form-group etapa">
+              <label for="telefone">Telefone</label>
+              <input
+                  type="tel"
+                  id="telefone"
+                  name="telefone"
+                  placeholder="18 99614-1236"
+                  maxlength="12"
+                  required
+              >
+          </div>
+
+          <div class="form-group etapa">
+              <label for="senha">Senha</label>
+              <input
+                  type="password"
+                  id="senha"
+                  name="senha"
+                  placeholder="Insira sua senha"
+                  required
+              >
+          </div>
+
+          <div class="form-group etapa">
+              <label for="confirmar-senha">Confirmar senha</label>
+              <input
+                  type="password"
+                  id="confirmar-senha"
+                  name="confirmar-senha"
+                  placeholder="Confirme sua senha"
+                  required
+              >
+          </div>
+
+          <div class="form-group etapa">
+              <label class="termos">
+                  <input
+                      type="checkbox"
+                      id="termos"
+                      name="termos"
+                      required
+                  >
+                  Li e estou de acordo com os Termos de Uso e a Política de Privacidade da Bem Conecta.
+              </label>
+
+              <button type="submit" class="Cadastro-btn">
+                  Cadastrar
+              </button>
+          </div>
+
+      </form>
       </div>
   </body>
 </html>

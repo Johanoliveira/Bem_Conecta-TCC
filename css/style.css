@@ -9,7 +9,7 @@ body {
 	padding: 0;
     min-height: 100%;
 	background: transparent;
-	background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("../img/imgong.jpg");
+	background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("../img/jpg/maosDadas.jpg");
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
@@ -34,26 +34,72 @@ main {
 	margin: 0 auto; 
 }
 
+.logo-section span {
+    font-size: 1.5em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
 /* Hero */
 .hero {
     position: relative;
     overflow: hidden;
 
-    background: rgba(176, 197, 175, 0.411);
-
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(10px);
-
-    border-radius: 12px;
-    padding: 40px 32px;
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(34, 77, 32, 0.07);
-
-    width: 800px;
+    width: 900px;
     max-width: calc(100% - 40px);
     min-height: 400px;
 
     margin: 150px auto 0;
+    padding: 40px 32px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.12),
+            rgba(255, 255, 255, 0.05) 45%,
+            rgba(255, 255, 255, 0.02)
+        );
+
+    backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    -webkit-backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 5px 15px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.08);
+
+    color: #fff;
+
+    animation: heroEntrada 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.05) 20%,
+            transparent 40%
+        );
+
+    pointer-events: none;
+    z-index: 1;
 }
 
 .hero-inner {
@@ -105,6 +151,12 @@ main {
 	max-width: 560px;
 }
 
+.hero-card {
+    opacity: 0;
+    animation: aparecerConteudo 0.8s ease forwards;
+    animation-delay: 0.5s;
+}
+
 /* Centraliza a div .cta (contêiner dos botões) abaixo do título dentro do hero */
 .hero .cta {
 	display: flex;
@@ -113,6 +165,10 @@ main {
 	width: 100%;
 	margin-top: 14px;
     gap: 20px;
+
+    opacity: 0;
+    animation: aparecerConteudo 0.8s ease forwards;
+    animation-delay: 0.8s;
 }
 
 .hero .cta-group a,
@@ -204,7 +260,7 @@ main {
 
 .sobre-imagem img {
     width: 100%;
-    max-width: 500px;
+    max-width: 350px;
     border-radius: 15px;
     display: block;
     margin: 0 auto;
@@ -215,7 +271,7 @@ main {
     width: 100%;
     min-height: 200px;
     padding: 80px 0;
-    background-image: url("../img/maocoracao.jpg");
+    background-image: url("../img/jpg/ONG.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -331,6 +387,35 @@ footer p {
     transform: translate(-50%, -50%);
     left: -500px;
     top: -500px;
+}
+
+@keyframes aparecerConteudo {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroEntrada {
+    0% {
+        opacity: 0;
+        transform: translateY(-150px) scale(0.8);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(15px) scale(1.03);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @keyframes deslizar-ongs {
