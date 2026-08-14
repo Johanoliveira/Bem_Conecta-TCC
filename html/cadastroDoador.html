@@ -20,7 +20,7 @@
     <main class="cadastro-container">
       <div class="cadastro-card">
         <h1>Cadastre-se</h1>
-        <form class="cadastro-form">
+        <form class="cadastro-form" action="../php/cadastroDoador.php" method="POST">
           <div class="form-group">
             <label for="usuario">Usuário</label>
             <input
@@ -33,7 +33,7 @@
           </div>
 
           <div class="form-group">
-            <label for="cpf">Data-Nascimento</label>
+            <label for="data-nascimento">Data-Nascimento</label>
             <input
               type="date"
               id="data-nascimento"
