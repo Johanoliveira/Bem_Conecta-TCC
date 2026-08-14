@@ -8,36 +8,151 @@
 </head>
 <body>
     <header>
-        <div class="logo-section">
-            <img src="img/Logo_Bem_Conecta2.png" alt="Logo Bem Conecta">
-            <span>Bem Conecta</span>
-        </div>
-
-        <nav class="nav-links">
-            <a href="#quem-somos">Quem Somos</a>
-            <a href="#projetos">Projetos</a>
-            <a href="#ONGs-parceiras">ONGs Parceiras</a>
-        </nav>
-
-        <div class="auth-links">
-            <a class="btn outline" href="html/login.html">Entrar</a>
-            <a class="btn primary" href="html/cadastro.html">Cadastre-se</a>
-        </div>
     </header>
 
     <main class="hero">
+
+    <div class="mouse-light"></div>
+
         <div class="hero-card">
-            <h1>Conectando pessoas e ONGs para o bem</h1>
-            <p>Somos uma ponte entre quem deseja ajudar e projetos que geram impacto real. Descubra iniciativas, doe tempo ou recursos e faça parte da transformação.</p>
-            <div class="cta">
-                <a class="btn primary" href="html/cadastroONG.html">Quero Ajudar</a>
-                <a class="btn outline" href="html/projetos.html">Conhecer Projetos</a>
+            <div class="logo-section">
+                <img src="img/Logo_Bem_Conecta2.png" alt="Logo Bem Conecta">
+                <span>Bem Conecta</span>
             </div>
         </div>
+
+        <div class="cta">
+            <a href="html/login.html" class="btn-primary">Entrar</a>
+            <a href="html/cadastro.html" class="btn-secondary">Criar conta</a>
+        </div>
+
     </main>
 
-    <footer>
+    <section class="sobre-nos">
+        <div class="sobre-container">
+            <div class="sobre-texto">
+                <h2>Sobre Nós</h2>
+                <p>
+                    O Bem Conecta é uma plataforma criada para aproximar pessoas
+                    que desejam ajudar de organizações que trabalham para
+                    transformar vidas.
+                </p>
+                <p>
+                    Nosso objetivo é facilitar a solidariedade, conectando
+                    doadores e ONGs de forma simples, segura e transparente.
+                </p>
+            </div>
+
+            <div class="sobre-imagem">
+                <img src="img/sobre-nos.jpg" alt="Sobre o Bem Conecta">
+            </div>
+        </div>
+    </section>
+
+    <section class="ongs-parceiras">
+        <div class="ongs-overlay"></div>
+
+        <div class="ongs-conteudo">
+            <h2>ONGs Parceiras</h2>
+            <p>Conheça algumas das organizações que fazem parte do Bem Conecta.</p>
+
+            <div class="ongs-carrossel">
+                <div class="ongs-track">
+
+                    <div class="ong-card">
+                        <img src="img/ong1.jpg" alt="ONG Parceira 1">
+                        <h3>ONG Parceira 1</h3>
+                        <p>Transformando vidas.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong2.jpg" alt="ONG Parceira 2">
+                        <h3>ONG Parceira 2</h3>
+                        <p>Construindo um futuro melhor.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong3.jpg" alt="ONG Parceira 3">
+                        <h3>ONG Parceira 3</h3>
+                        <p>Juntos pela solidariedade.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong4.jpg" alt="ONG Parceira 4">
+                        <h3>ONG Parceira 4</h3>
+                        <p>Ajudando quem precisa.</p>
+                    </div>
+
+                    <!-- Repetição para o movimento contínuo -->
+
+                    <div class="ong-card">
+                        <img src="img/ong1.jpg" alt="ONG Parceira 1">
+                        <h3>ONG Parceira 1</h3>
+                        <p>Transformando vidas.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong2.jpg" alt="ONG Parceira 2">
+                        <h3>ONG Parceira 2</h3>
+                        <p>Construindo um futuro melhor.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong3.jpg" alt="ONG Parceira 3">
+                        <h3>ONG Parceira 3</h3>
+                        <p>Juntos pela solidariedade.</p>
+                    </div>
+
+                    <div class="ong-card">
+                        <img src="img/ong4.jpg" alt="ONG Parceira 4">
+                        <h3>ONG Parceira 4</h3>
+                        <p>Ajudando quem precisa.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer>
         <p>&copy; <strong>Bem Conecta</strong> — Unindo solidariedade e ações.</p>
-    </footer>
+        </footer>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const hero = document.querySelector(".hero");
+            const light = document.querySelector(".mouse-light");
+
+            let mouseX = -500;
+            let mouseY = -500;
+
+            let lightX = -500;
+            let lightY = -500;
+
+            hero.addEventListener("mousemove", function (event) {
+                const rect = hero.getBoundingClientRect();
+
+                mouseX = event.clientX - rect.left;
+                mouseY = event.clientY - rect.top;
+            });
+
+            hero.addEventListener("mouseleave", function () {
+                mouseX = -500;
+                mouseY = -500;
+            });
+
+            function animateLight() {
+                lightX += (mouseX - lightX) * 0.08;
+                lightY += (mouseY - lightY) * 0.08;
+
+                light.style.left = lightX + "px";
+                light.style.top = lightY + "px";
+
+                requestAnimationFrame(animateLight);
+            }
+
+            animateLight();
+        });
+    </script>
 </body>
 </html>
