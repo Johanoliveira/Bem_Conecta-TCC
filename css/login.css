@@ -83,7 +83,7 @@ main.login-container {
 
     width: 450px;
     max-width: calc(100% - 40px);
-    min-height: 400px;
+    max-height: 500px;
 
     margin: 25px auto 0;
     padding: 40px 32px;
@@ -138,7 +138,7 @@ main.login-container {
 }
 
 .form-group label {
-    color: #11530f;
+    color: #fff;
     font-weight: bold;
     margin-bottom: 8px;
     font-size: 0.95em;
@@ -165,43 +165,6 @@ main.login-container {
 
 .form-group input::placeholder {
     color: #999;
-}
-
-/* ===== Remember & Forgot ===== */
-.remember-forgot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.9em;
-}
-
-.remember {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #ffffff;
-    font-weight: normal;
-    cursor: pointer;
-}
-
-.remember input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    accent-color: #1b9e2a;
-}
-
-.forgot-link {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-
-.forgot-link:hover {
-    color: #27ae60;
-    text-decoration: underline;
 }
 
 /* ===== Login Button ===== */
@@ -259,7 +222,6 @@ footer {
     color: #ddd;
     font-size: 0.9em;
     border-top: 1px solid #ddd;
-    margin-top: 40px;
 }
 
 footer p {

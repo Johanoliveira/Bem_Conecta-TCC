@@ -6,9 +6,10 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: transparent;
+    background-attachment: fixed;
     background-image:
         linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-        url("../img/imgong.jpg");
+        url("../img/jpg/voluntarios.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -84,7 +85,7 @@ main.cadastro-container {
 
     width: 450px;
     max-width: calc(100% - 40px);
-    min-height: 400px;
+    min-height: 250px;
 
     margin: 25px auto 0;
     padding: 40px 32px;
@@ -241,5 +242,28 @@ main.cadastro-container {
 
     .Cadastro-btn {
         width: 100%;
+    }
+}
+
+.etapa {
+    display: none;
+}
+
+.etapa.ativa {
+    display: flex;
+    animation: aparecerEtapa 0.6s ease;
+}
+
+@keyframes aparecerEtapa {
+    0% {
+        opacity: 0;
+        transform: translateY(25px);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
     }
 }

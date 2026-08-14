@@ -17,7 +17,7 @@
         <div class="hero-card">
             <div class="logo-section">
                 <img src="img/jpg/Logo_Bem_Conecta2.png" alt="Logo Bem Conecta" loading="lazy">
-                <span>Bem Conecta</span>
+                <img src="img/doarMaior.png" alt="" class="imagem-doar">
             </div>
         </div>
 
@@ -28,7 +28,7 @@
 
     </main>
 
-    <section class="sobre-nos">
+    <section class="sobre-nos" id="sobre">
         <div class="sobre-container">
             <div class="sobre-texto">
                 <h2>Sobre Nós</h2>
@@ -117,42 +117,8 @@
         <p>&copy; <strong>Bem Conecta</strong> — Unindo solidariedade e ações.</p>
         </footer>
     </section>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const hero = document.querySelector(".hero");
-            const light = document.querySelector(".mouse-light");
-
-            let mouseX = -500;
-            let mouseY = -500;
-
-            let lightX = -500;
-            let lightY = -500;
-
-            hero.addEventListener("mousemove", function (event) {
-                const rect = hero.getBoundingClientRect();
-
-                mouseX = event.clientX - rect.left;
-                mouseY = event.clientY - rect.top;
-            });
-
-            hero.addEventListener("mouseleave", function () {
-                mouseX = -500;
-                mouseY = -500;
-            });
-
-            function animateLight() {
-                lightX += (mouseX - lightX) * 0.08;
-                lightY += (mouseY - lightY) * 0.08;
-
-                light.style.left = lightX + "px";
-                light.style.top = lightY + "px";
-
-                requestAnimationFrame(animateLight);
-            }
-
-            animateLight();
-        });
-    </script>
+    
+    <!-- Animação da luz-->
+    <script src="js/index.js"></script>
 </body>
 </html>

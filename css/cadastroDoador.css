@@ -6,9 +6,10 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: transparent;
+    background-attachment: fixed;
     background-image:
         linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-        url("../img/imgong.jpg");
+        url("../img/jpg/maosJuntas.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -83,9 +84,9 @@ main.cadastro-container {
 
     width: 450px;
     max-width: calc(100% - 40px);
-    min-height: 400px;
+    min-height: 250px;
 
-    margin: 25px auto 0;
+    margin: 10px auto 0;
     padding: 40px 32px;
 
     background:
@@ -172,19 +173,6 @@ main.cadastro-container {
 
 .form-group input::placeholder {
     color: #999;
-}
-
-
-.forgot-link {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-
-.forgot-link:hover {
-    color: #27ae60;
-    text-decoration: underline;
 }
 
 /* ===== Login Button ===== */

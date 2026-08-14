@@ -3,6 +3,10 @@
 	box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
 	font-family: Arial, Helvetica, sans-serif;
 	margin: 0;
@@ -25,13 +29,13 @@ body {
 .login-card,
 .cadastro-container,
 .login-container,
-main {
+main{
     margin-left: auto;
     margin-right: auto;
 }
 
 .logo-section {
-	margin: 0 auto; 
+	margin: auto; 
 }
 
 .logo-section span {
@@ -111,21 +115,25 @@ main {
 	gap: 18px;
 }
 
-/* Logo principal (imagem + texto) */
 .hero .logo-section {
 	display: flex;
 	flex-direction: row; 
 	align-items: center;
 	gap: 18px;
 	justify-content: center;
-    font-size: 60px; /*Tamanho da fonte, Bem Conecta*/
+}
+
+.hero .logo-section .imagem-doar {
+    height: 180px;
+    width: auto;
+    max-width: none;
 }
 
 /* Tamanho da logo */
 .hero .logo-section img {
-	height: 220px;
+	height: 280px;
 	width: auto;
-	max-width: 220px; 
+	max-width: 300px; 
 }
 
 .hero .logo-info {
@@ -271,7 +279,7 @@ main {
     width: 100%;
     min-height: 200px;
     padding: 80px 0;
-    background-image: url("../img/jpg/ONG.jpg");
+    background-image: url("../img/jpg/voluntarios.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -311,34 +319,60 @@ main {
     display: flex;
     width: max-content;
     gap: 25px;
-    animation: deslizar-ongs 35s linear infinite;
+    animation: deslizar-ongs 100s linear infinite;
+    will-change: transform;
 }
 
 .ong-card {
     width: 280px;
     min-width: 280px;
-    background: rgba(255,255,255,0.95);
-    border-radius: 15px;
     padding: 15px;
-    color: #222;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.22),
+            rgba(255, 255, 255, 0.12) 45%,
+            rgba(255, 255, 255, 0.3)
+        );
+
+    backdrop-filter:
+        blur(30px)
+        saturate(180%)
+        brightness(110%);
+
+    -webkit-backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 5px 15px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.08);
+
+    color: #fff;
 }
 
 .ong-card img {
     width: 100%;
-    height: 160px;
+    height: 200px;
     object-fit: cover;
     border-radius: 10px;
 }
 
 .ong-card h3 {
     margin: 15px 0 8px;
-    color: #14902a;
+    color: #fff;
+    border-color: #fff;
 }
 
 .ong-card p {
     margin: 0 0 10px;
-    color: #555;
+    color: #ffffffc2;
 }
 
 .ongs-parceiras {
@@ -424,7 +458,7 @@ footer p {
     }
 
     to {
-        transform: translateX(-50%);
+        transform: translateX(calc(-50% - 12.5px));
     }
 }
 
