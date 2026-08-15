@@ -19,9 +19,10 @@ body {
     padding: 18px 28px;
 }
 
-.logo-foto {
+.logos {
     display: flex;
     align-items: center;
+    gap: 5px;
 }
 
 .logo-foto img {

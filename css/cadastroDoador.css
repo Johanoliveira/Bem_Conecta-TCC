@@ -22,7 +22,7 @@ body {
 header {
     background-color: #1b9e2a;
     color: #fff;
-    padding: 16px 0;
+    padding: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -35,14 +35,18 @@ header > div {
     margin: 0 24px;
 }
 
-.logo-section {
+.logos {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 5px;
 }
 
-.logo-section img {
-    height: 50px;
+.logo-foto img {
+    width: 70px;
+}
+
+.logo-escrita img{
+    width: 140px;
 }
 
 .logo-section span {
