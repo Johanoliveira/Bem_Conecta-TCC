@@ -6,7 +6,11 @@
 }
 
 body {
-    background: #d9e4de;
+    background: transparent;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+        url("../img/jpg/holder.jpg");
+    background-attachment: fixed;
     color: #2d2d2d;
 }
 
@@ -53,19 +57,49 @@ body {
     gap: 10px;
 }
 
-.top-actions input {
-    padding: 10px 12px;
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #efefef;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 44px;
+    height: 44px;
+    transition: width 0.35s ease;
+}
+
+.search-box.active {
+    width: 250px;
+}
+
+.search-box input {
+    width: 0;
+    opacity: 0;
     border: none;
-    border-radius: 6px;
-    width: 220px;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    font-size: 15px;
+    transition:
+        width 0.35s ease,
+        opacity 0.2s ease,
+        padding 0.35s ease;
+}
+
+.search-box.active input {
+    width: 206px;
+    opacity: 1;
+    padding: 10px 12px;
 }
 
 .search-btn {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
     background: #efefef;
     border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
     cursor: pointer;
+    font-size: 17px;
 }
 
 .profile-btn {
@@ -104,20 +138,48 @@ body {
 }
 
 .sidebar-card {
-    background: #ececec;
-    border-radius: 18px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.12),
+            rgba(255, 255, 255, 0.05) 45%,
+            rgba(255, 255, 255, 0.02)
+        );
+
+    backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    -webkit-backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 5px 15px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.08);
     padding: 20px;
 }
 
+.sidebar-card strong{
+    color: #fff;
+}
+
 .sidebar-card h3 {
-    color: #22a848;
+    color: #fff;
     margin-bottom: 14px;
 }
 
 .sidebar-card a {
     display: block;
     text-decoration: none;
-    color: #333;
+    color: #fff;
     padding: 10px 0;
     border-bottom: 1px solid #d4d4d4;
 }
@@ -239,7 +301,7 @@ body {
 
 .campaign p {
     font-size: 0.9rem;
-    color: #555;
+    color: #fff;
 }
 
 /* RESPONSIVO */

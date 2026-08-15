@@ -6,8 +6,8 @@
     <title>Bem Conecta - Início</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
 </head>
-<body>
 
+<body>
 <!-- TOPO -->
 <header class="topbar">
     <div class="logos">
@@ -27,8 +27,11 @@
     </nav>
 
     <div class="top-actions">
-    <input type="text" placeholder="Pesquisar ONGs...">
-    <button class="search-btn">🔍</button>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Pesquisar ONGs...">
+        <button class="search-btn" id="searchBtn">🔍</button>
+    </div>
 
     <button class="profile-btn">
         <img src="https://i.pravatar.cc/40" alt="Avatar">
@@ -148,6 +151,6 @@
     </aside>
 
 </div>
-
+<script src="../js/inicialPage.js"></script>
 </body>
 </html>
