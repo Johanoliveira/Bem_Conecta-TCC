@@ -12,23 +12,45 @@ searchBtn.addEventListener("click", () => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    carregarPosts();
-});
+//post para teste
+const modoTeste = true;
 
+const postsTeste = [
+    {
+        idPost: 1,
+        idONG: 1,
+        nomeONG: "Instituto Sementes do Futuro",
+        titulo: "Ajude nossa campanha de materiais escolares",
+        conteudo: "../img/jpg/holder.jpg",
+        descricao: "Estamos arrecadando recursos para distribuir materiais escolares para crianças em situação de vulnerabilidade. Nossa meta é atender 500 famílias até o próximo mês.",
+        dataPublicacao: "2026-08-16 12:30:00",
+        palavrasChave: "educação, crianças, doação"
+    }
+];
+ 
+//Carrega post
 async function carregarPosts() {
 
     const container = document.getElementById("post-container");
 
     try {
 
-        const resposta = await fetch("../php1/buscarPosts.php");
+        let posts;
 
-        if (!resposta.ok) {
-            throw new Error("Erro ao buscar os posts.");
+        if (modoTeste) {
+
+            posts = postsTeste;
+
+        } else {
+
+            const resposta = await fetch("../php/buscarPosts.php");
+
+            if (!resposta.ok) {
+                throw new Error("Erro ao buscar os posts.");
+            }
+
+            posts = await resposta.json();
         }
-
-        const posts = await resposta.json();
 
         container.innerHTML = "";
 
@@ -60,6 +82,7 @@ async function carregarPosts() {
     }
 }
 
+//Cria post
 function criarPost(post, container) {
 
     const article = document.createElement("article");
