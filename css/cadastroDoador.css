@@ -6,9 +6,10 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: transparent;
+    background-attachment: fixed;
     background-image:
         linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-        url("../img/imgong.jpg");
+        url("../img/jpg/maosJuntas.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -78,17 +79,44 @@ main.cadastro-container {
 }
 
 .cadastro-card {
-    background: rgba(176, 197, 175, 0.411); /* cor branca translúcida */
-    backdrop-filter: blur(15px); /* desfoque do fundo */
-    -webkit-backdrop-filter: blur(10px); /* para compatibilidade com Safari */
-    border-radius: 12px; /* cantos arredondados */
-    border: none;
-    padding: 20px;
-    color: #fff;;
-    box-shadow: 0 2px 12px rgba(34, 77, 32, 0.07);
-    padding: 60px 52px;
-    width: 100%;
-    max-width: 700px;
+    position: relative;
+    overflow: hidden;
+
+    width: 450px;
+    max-width: calc(100% - 40px);
+    min-height: 250px;
+
+    margin: 10px auto 0;
+    padding: 40px 32px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.12),
+            rgba(255, 255, 255, 0.05) 45%,
+            rgba(255, 255, 255, 0.02)
+        );
+
+    backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    -webkit-backdrop-filter:
+        blur(20px)
+        saturate(180%)
+        brightness(110%);
+
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 5px 15px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.08);
+
+    color: #fff;
 }
 
 .cadastro-card h1 {
@@ -145,19 +173,6 @@ main.cadastro-container {
 
 .form-group input::placeholder {
     color: #999;
-}
-
-
-.forgot-link {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-
-.forgot-link:hover {
-    color: #27ae60;
-    text-decoration: underline;
 }
 
 /* ===== Login Button ===== */
@@ -248,4 +263,40 @@ footer p {
     }
 
             
+}
+
+.etapa {
+    display: none;
+}
+
+.etapa.ativa {
+    display: flex;
+    animation: aparecerEtapa 0.6s ease;
+}
+
+@keyframes aparecerEtapa {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+        filter: blur(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.termos {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+}
+
+.termos input {
+    width: auto !important;
+    margin-top: 3px;
 }

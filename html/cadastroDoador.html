@@ -1,107 +1,108 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Cadastro - Bem Conecta</title>
     <link rel="stylesheet" href="../css/cadastroDoador.css" />
-  </head>
-  <body>
+</head>
+<script src="../js/cadastroDoador.js"></script>
+<body>
     <header>
-      <div class="logo-section">
-        <img src="../img/Logo_Bem_Conecta2.png" alt="Logo Bem Conecta" />
+    <div class="logo-section">
+        <img src="../img/Logo_Bem_Conecta2.webp" alt="Logo Bem Conecta" loading="lazy"/>
         <span>Bem Conecta</span>
-      </div>
-      <div class="nav-links">
+    </div>
+    <div class="nav-links">
         <a href="../html/cadastro.html">Voltar</a>
-      </div>
+    </div>
     </header>
-
     <main class="cadastro-container">
-      <div class="cadastro-card">
+    <div class="cadastro-card">
         <h1>Cadastre-se</h1>
         <form class="cadastro-form" action="../php/cadastroDoador.php" method="POST">
           <div class="form-group">
             <label for="usuario">Usuário</label>
             <input
-              type="text"
-              id="usuario"
-              name="usuario"
-              placeholder="Insira seu nome de usuário"
-              required
-            />
-          </div>
+                type="text"
+                id="usuario"
+                name="usuario"
+                placeholder="Insira seu nome de usuário"
+                required
+            >
+        </div>
 
           <div class="form-group">
             <label for="data-nascimento">Data-Nascimento</label>
             <input
-              type="date"
-              id="data-nascimento"
-              name="data-nascimento"
-              placeholder="DD/MM/AAAA"
-              required
-            />
-          </div>
+                type="date"
+                id="data-nascimento"
+                name="data-nascimento"
+                required
+            >
+        </div>
 
-          <div class="form-group">
+        <div class="form-group etapa">
             <label for="email">Email</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Insira seu email"
-              required
-            />
-          </div>
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Insira seu email"
+                required
+            >
+        </div>
 
-          <div class="form-group">
+        <div class="form-group etapa">
             <label for="telefone">Telefone</label>
             <input
-              type="tel"
-              id="telefone"
-              name="telefone"
-              placeholder="Insira seu telefone"
-              required
-            />
-          </div>
+                type="tel"
+                id="telefone"
+                name="telefone"
+                placeholder="18 99614-1236"
+                maxlength="12"
+                required
+            >
+        </div>
 
-          <div class="form-group">
+        <div class="form-group etapa">
             <label for="senha">Senha</label>
-
-            <div>
-              <input
+            <input
                 type="password"
                 id="senha"
                 name="senha"
                 placeholder="Insira sua senha"
                 required
-              />
-          </div>
-          <br>
-          <div class="form-group">
-            <label for="confirmar-senha">Confirmar Senha</label>
+            >
+        </div>
+
+        <div class="form-group etapa">
+            <label for="confirmar-senha">Confirmar senha</label>
             <input
-              type="password"
-              id="confirmar-senha"
-              name="confirmar-senha"
-              placeholder="Confirme sua senha"
-              required
-            />
-          </div>
-        <br>
-          <div class="form-group">
-            <label for="termos">
-              <input type="checkbox" id="termos" name="termos" required />
-              Li e estou de acordo com os Termos de Uso e a Política de Privacidade da Bem_Conecta.
+                type="password"
+                id="confirmar-senha"
+                name="confirmar-senha"
+                placeholder="Confirme sua senha"
+                required
+            >
+        </div>
+
+        <div class="form-group etapa">
+            <label class="termos">
+                <input
+                    type="checkbox"
+                    id="termos"
+                    name="termos"
+                    required
+                >
+                Li e estou de acordo com os Termos de Uso e a Política de Privacidade da Bem Conecta.
             </label>
-            </div>
-            <br>
-          <button type="submit" class="Cadastro-btn">Cadastrar</button>
-        </form>
-        <p class="login-link">
-          Já tem uma conta?
-          <a href="../html/login.html">Faça login aqui!</a>
-        </p>
-      </div>
-  </body>
+
+            <button type="submit" class="Cadastro-btn">
+                Cadastrar
+            </button>
+        </div>
+    </form>
+    </div>
+</body>
 </html>

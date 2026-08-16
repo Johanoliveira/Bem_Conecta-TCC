@@ -6,12 +6,11 @@
     <title>Cadastro ONG - Bem Conecta</title>
     <link rel="stylesheet" href="../css/cadastroONG.css">
 </head>
-
 <body>
 
     <header>
         <div class="logo-section">
-            <img src="../img/Logo_Bem_Conecta2.png" alt="Logo Bem Conecta">
+            <img src="../img/Logo_Bem_Conecta2.webp" alt="Logo Bem Conecta">
             <span>Bem Conecta</span>
         </div>
 
@@ -28,7 +27,7 @@
 
             <form class="cadastro-form" action="../php/cadastroONG.php" method="POST">
 
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="nome">Nome da ONG</label>
                     <input
                         type="text"
@@ -39,18 +38,19 @@
                     >
                 </div>
 
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="cnpj">CNPJ</label>
                     <input
                         type="text"
                         id="cnpj"
                         name="cnpj"
                         placeholder="00.000.000/0000-00"
+                        maxlength="18"
                         required
                     >
                 </div>
 
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="email">E-mail</label>
                     <input
                         type="email"
@@ -61,18 +61,19 @@
                     >
                 </div>
 
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="telefone">Telefone</label>
                     <input
                         type="tel"
                         id="telefone"
                         name="telefone"
                         placeholder="(00) 00000-0000"
+                        maxlength="15"
                         required
                     >
                 </div>
 
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="senha">Senha</label>
                     <input
                         type="password"
@@ -83,9 +84,7 @@
                     >
                 </div>
 
-                <br>
-
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="confirmar-senha">Confirmar Senha</label>
                     <input
                         type="password"
@@ -96,9 +95,7 @@
                     >
                 </div>
 
-                <br>
-
-                <div class="form-group">
+                <div class="form-group etapa">
                     <label for="termos">
                         <input
                             type="checkbox"
@@ -110,16 +107,16 @@
                     </label>
                 </div>
 
-                <br>
+                <div class="form-group etapa">
+                    <button type="submit" class="Cadastro-btn">
+                        Cadastrar
+                    </button>
 
-                <button type="submit" class="Cadastro-btn">
-                    Cadastrar
-                </button>
-
-              <p class="login-link">
-                  Já tem uma conta?
-                  <a href="../html/login.html">Faça login aqui!</a>
-              </p>
+                    <p class="login-link">
+                        Já tem uma conta?
+                        <a href="../html/login.html">Faça login aqui!</a>
+                    </p>
+                </div>
 
             </form>
 
@@ -127,5 +124,6 @@
 
     </main>
 
+<script src="../js/cadastroONG.js"></script>
 </body>
 </html>
