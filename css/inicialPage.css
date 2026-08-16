@@ -171,6 +171,10 @@ body {
     color: #fff;
 }
 
+.sidebar-card p{
+    color: #ffffffb4;
+}
+
 .sidebar-card h3 {
     color: #fff;
     margin-bottom: 14px;
