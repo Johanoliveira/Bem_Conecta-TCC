@@ -1,56 +1,62 @@
-create database banco;
-use banco;
+CREATE DATABASE banco;
+USE banco;
 
 CREATE TABLE endereco (
-    inEndereco INT AUTO_INCREMENT PRIMARY KEY,
+    idEndereco INT AUTO_INCREMENT PRIMARY KEY,
     logradouro VARCHAR(50) NOT NULL,
-    numero int NOT NULL,
+    numero INT NOT NULL,
     bairro VARCHAR(50) NOT NULL,
     cidade VARCHAR(50) NOT NULL,
     estado VARCHAR(2) NOT NULL,
-    CEP int NOT NULL
+    CEP VARCHAR(8) NOT NULL
 );
 
-create table MoldeUsuario(
-    idMUsuario int auto_increment primary key,
-    nome varchar(255) not null,
-    email varchar(255) not null unique,
-    senha varchar(255) not null,
-    fotoPerfil varchar(50) not null,
-    telefone varchar(11) not null,
+CREATE TABLE MoldeUsuario (
+    idMUsuario INT AUTO_INCREMENT PRIMARY KEY,
+    idEndereco INT NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    fotoPerfil VARCHAR(50),
+    telefone VARCHAR(11) NOT NULL,
     FOREIGN KEY (idEndereco) REFERENCES endereco(idEndereco)
 );
 
 CREATE TABLE ONGs (
     idONG INT AUTO_INCREMENT PRIMARY KEY,
+    idMoldeUsuario INT NOT NULL,
     descricao VARCHAR(150) NOT NULL,
-    CNPJ INT NOT NULL UNIQUE,
-    Website INT UNIQUE,
-    instagram INT,
-    facebook INT,
-    X INT,
+    CNPJ VARCHAR(14) NOT NULL UNIQUE,
+    Website VARCHAR(255) UNIQUE,
+    instagram VARCHAR(255),
+    facebook VARCHAR(255),
+    X VARCHAR(255),
     FOREIGN KEY (idMoldeUsuario) REFERENCES MoldeUsuario(idMUsuario)
 );
 
 CREATE TABLE posts (
     idPost INT AUTO_INCREMENT PRIMARY KEY,
-    titulo varchar(70) INT NOT NULL,
-    conteudo varchar(100) NOT NULL,
-    dataPublicacao datetime DEFAULT,
-    palavrasChave varchar(10) not null,
-    FOREIGN KEY (idONG) REFERENCES ONG(idONG)
+    idONG INT NOT NULL,
+    titulo VARCHAR(70) NOT NULL,
+    conteudo VARCHAR(100) NOT NULL,
+    dataPublicacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    palavrasChave VARCHAR(255) NOT NULL,
+    FOREIGN KEY (idONG) REFERENCES ONGs(idONG)
 );
 
 CREATE TABLE UsuarioComum (
-    idUsuarioComum int AUTO_INCREMENT PRIMARY KEY,
-    CPF int not null unique,
+    idUsuarioComum INT AUTO_INCREMENT PRIMARY KEY,
+    idMoldeUsuario INT NOT NULL,
+    CPF VARCHAR(11) NOT NULL UNIQUE,
     FOREIGN KEY (idMoldeUsuario) REFERENCES MoldeUsuario(idMUsuario)
 );
 
 CREATE TABLE comentarios (
     idComentario INT AUTO_INCREMENT PRIMARY KEY,
-    conteudo varchar(100) NOT NULL,
-    dataComentario datetime DEFAULT,
+    idUsuarioComum INT NOT NULL,
+    idONG INT NOT NULL,
+    conteudo VARCHAR(100) NOT NULL,
+    dataComentario DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (idUsuarioComum) REFERENCES UsuarioComum(idUsuarioComum),
-    FOREIGN KEY (idONG) REFERENCES ONG(idONG)
+    FOREIGN KEY (idONG) REFERENCES ONGs(idONG)
 );
