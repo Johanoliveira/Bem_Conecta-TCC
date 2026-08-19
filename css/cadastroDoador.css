@@ -269,13 +269,18 @@ footer p {
             
 }
 
-.etapa {
+/*.etapa {
     display: none;
 }
 
 .etapa.ativa {
     display: flex;
     animation: aparecerEtapa 0.6s ease;
+}*/
+
+.etapa {
+    display: flex !important;
+    flex-direction: column;
 }
 
 @keyframes aparecerEtapa {

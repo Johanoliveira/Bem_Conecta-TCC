@@ -62,7 +62,8 @@ CREATE TABLE ONGs (
 CREATE TABLE UsuarioComum (
     idUsuarioComum INT AUTO_INCREMENT PRIMARY KEY,
     idMoldeUsuario INT NOT NULL,
-    CPF VARCHAR(11) NOT NULL UNIQUE,
+    CPF VARCHAR(11) UNIQUE,
+    dataNasc date,
 
     FOREIGN KEY (idMoldeUsuario)
         REFERENCES MoldeUsuario(idMUsuario)

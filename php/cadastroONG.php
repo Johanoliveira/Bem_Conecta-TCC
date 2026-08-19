@@ -1,43 +1,119 @@
 <?php
 
-// Dados de conexão (ajuste conforme seu ambiente)
-$host = "localhost";
-$dbuser = "root";
-$dbpass = "";
-$dbname = "BemConecta";
+require_once "conexao.php";
 
-// Conecta ao banco de dados
-$conexao = mysqli_connect($host, $dbuser, $dbpass, $dbname);
+// Recebe os dados do formulário
+$nome = $_POST["nome"] ?? "";
+$cnpj = $_POST["cnpj"] ?? "";
+$email = $_POST["email"] ?? "";
+$telefone = $_POST["telefone"] ?? "";
+$senha = $_POST["senha"] ?? "";
+$confirmarSenha = $_POST["confirmar-senha"] ?? "";
 
-if (!$conexao) {
-    die("Erro ao conectar: " . mysqli_connect_error());
+// Verifica se todos os campos foram preenchidos
+if (
+    empty($nome) ||
+    empty($cnpj) ||
+    empty($email) ||
+    empty($telefone) ||
+    empty($senha) ||
+    empty($confirmarSenha)
+) {
+    die("Preencha todos os campos.");
 }
-
-// Pega os dados enviados pelo formulário
-$nome = $_POST["nome"];
-$cnpj = $_POST["cnpj"];
-$email = $_POST["email"];
-$telefone = $_POST["telefone"];
-$senha = $_POST["senha"];
-$confirmarSenha = $_POST["confirmar-senha"];
 
 // Verifica se as senhas são iguais
-if ($senha != $confirmarSenha) {
+if ($senha !== $confirmarSenha) {
     die("As senhas não coincidem.");
 }
+
+// Remove caracteres do CNPJ
+$cnpj = preg_replace('/\D/', '', $cnpj);
+
+// Remove caracteres do telefone
+$telefone = preg_replace('/\D/', '', $telefone);
 
 // Criptografa a senha
 $senhaCriptografada = password_hash($senha, PASSWORD_DEFAULT);
 
-// Monta e executa o comando de inserção
-$sql = "INSERT INTO ongs (nome, cnpj, email, telefone, senha)
-        VALUES ('$nome', '$cnpj', '$email', '$telefone', '$senhaCriptografada')";
+// Foto padrão
+$fotoPerfil = "perfil.png";
 
-if (mysqli_query($conexao, $sql)) {
-    echo "Cadastro realizado com sucesso!";
-} else {
-    echo "Erro ao cadastrar: " . mysqli_error($conexao);
+
+// ================================
+// 1. INSERE NA MoldeUsuario
+// ================================
+
+$sqlUsuario = "INSERT INTO MoldeUsuario
+(nome, email, senha, fotoPerfil, telefone)
+VALUES (?, ?, ?, ?, ?)";
+
+$stmtUsuario = $conexao->prepare($sqlUsuario);
+
+if (!$stmtUsuario) {
+    die("Erro ao preparar cadastro do usuário: " . $conexao->error);
 }
 
-//fecha a conexão com o banco de dados
-mysqli_close($conexao);
+$stmtUsuario->bind_param(
+    "sssss",
+    $nome,
+    $email,
+    $senhaCriptografada,
+    $fotoPerfil,
+    $telefone
+);
+
+if (!$stmtUsuario->execute()) {
+    die("Erro ao cadastrar usuário: " . $stmtUsuario->error);
+}
+
+// Pega o ID do usuário criado
+$idMoldeUsuario = $conexao->insert_id;
+
+$stmtUsuario->close();
+
+
+// ================================
+// 2. INSERE NA TABELA ONGs
+// ================================
+
+$sqlONG = "INSERT INTO ONGs
+(idMoldeUsuario, CNPJ)
+VALUES (?, ?)";
+
+$stmtONG = $conexao->prepare($sqlONG);
+
+if (!$stmtONG) {
+    die("Erro ao preparar cadastro da ONG: " . $conexao->error);
+}
+
+$stmtONG->bind_param(
+    "is",
+    $idMoldeUsuario,
+    $cnpj
+);
+
+if (!$stmtONG->execute()) {
+
+    // Se o cadastro da ONG falhar,
+    // remove o usuário criado anteriormente
+    $stmtDelete = $conexao->prepare(
+        "DELETE FROM MoldeUsuario WHERE idMUsuario = ?"
+    );
+
+    $stmtDelete->bind_param("i", $idMoldeUsuario);
+    $stmtDelete->execute();
+    $stmtDelete->close();
+
+    die("Erro ao cadastrar ONG: " . $stmtONG->error);
+}
+
+$stmtONG->close();
+
+
+// Fecha a conexão
+$conexao->close();
+
+echo "Cadastro da ONG realizado com sucesso!";
+
+?>
