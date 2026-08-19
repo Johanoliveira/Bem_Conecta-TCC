@@ -1,63 +1,69 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Login - Bem Conecta</title>
-    <link rel="stylesheet" href="../css/login.css" />
-  </head>
-  <body>
-    <header>
-      <div class="logos">
-        <div class="logo-foto">
-            <img src="../img/logo/logo.webp" loading="lazy">
-        </div>
-        <div class="logo-escrita">
-            <img src="../img/logo/escrita.png" loading="lazy">
-        </div>
-    </div>
-      <div class="nav-links">
-        <a href="../index.html">Voltar</a>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Bem Conecta</title>
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body>
+
+  <header>
+
+    <div class="logos">
+      <div class="logo-foto">
+        <img src="../img/logo/logo.webp" loading="lazy">
       </div>
-    </header>
+      <div class="logo-escrita">
+        <img src="../img/logo/escrita.png" loading="lazy">
+      </div>
+    </div>
 
-    <main class="login-container">
-      <div class="login-card">
-        <h1>Login</h1>
-        <form class="login-form" action="../php/login.php" method="POST">
-          <div class="form-group">
-            <label for="login">Email ou Usuário</label>
-            <input
-              type="text"
-              id="login"
-              name="login"
-              placeholder="Insira seu email ou usuário"
-              required
-            />
-          </div>
+    <div class="nav-links">
+      <a href="../index.html">Voltar</a>
+    </div>
 
-          <div class="form-group">
-            <label for="senha">Senha</label>
+  </header>
 
-            <div>
-              <input
-                type="password"
-                id="senha"
-                name="senha"
-                placeholder="Insira sua senha"
-                required
-              />
-            </div>
-          </div>
 
-          <button type="submit" class="Login-btn">Login</button>
+  <main class="login-container">
+    <div class="login-card">
+      <h1>Login</h1>
+      <form class="login-form" action="../php/login.php" method="POST">
+        <div class="form-group">
+          <label for="login">E-mail</label>
+          <input type="email" id="login" name="login" placeholder="Insira seu e-mail" required>
+        </div>
 
-          <div class="signup-section">
-            Ainda não tem cadastro? <a href="cadastro.html">Cadastre-se aqui!</a>
-          </div>
 
-      <footer>
-        <p>&copy; 2026 Bem Conecta. Todos os direitos reservados.</p>
-      </footer>
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" placeholder="Insira sua senha" required>
+        </div>
+
+
+        <button type="submit" class="Login-btn">
+          Login
+        </button>
+
+        <div class="signup-section">
+          Ainda não tem cadastro?
+          <a href="cadastro.html">Cadastre-se aqui!</a>
+        </div>
+
+        <footer>
+
+          <p>&copy; 2026 Bem Conecta. Todos os direitos reservados.</p>
+
+        </footer>
+      </form>
+    </div>
+  </main>
+
+  
+
 </body>
+
 </html>

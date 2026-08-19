@@ -30,6 +30,7 @@ CREATE TABLE MoldeUsuario (
     fotoPerfil VARCHAR(255),
     telefone VARCHAR(11),
     dataCriacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    nivelDeSeguranca int not null DEFAULT 1,
 
     FOREIGN KEY (idEndereco)
         REFERENCES endereco(idEndereco)

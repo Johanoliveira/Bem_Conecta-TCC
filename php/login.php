@@ -2,43 +2,80 @@
 
 session_start();
 
-// Dados de conexão (ajuste conforme seu ambiente)
-$host = "localhost";
-$dbuser = "root";
-$dbpass = "";
-$dbname = "BemConecta";
+require_once "conexao.php";
 
-// Conecta ao banco de dados
-$conexao = mysqli_connect($host, $dbuser, $dbpass, $dbname);
-
-if (!$conexao) {
-    die("Erro ao conectar: " . mysqli_connect_error());
+// Verifica se os dados foram enviados
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    die("Acesso inválido.");
 }
 
-// Pega os dados enviados pelo formulário
-$emailOuUsuario = $_POST["email"];
-$senha = $_POST["senha"];
+// Recebe os dados do formulário
+$login = $_POST["login"] ?? "";
+$senha = $_POST["senha"] ?? "";
 
-// Procura primeiro na tabela de doadores
-$sql = "SELECT * FROM doadores WHERE email = '$emailOuUsuario' OR usuario = '$emailOuUsuario'";
-$resultado = mysqli_query($conexao, $sql);
-$dados = mysqli_fetch_assoc($resultado);
-
-// Se não achou, procura na tabela de ONGs
-if (!$dados) {
-    $sql = "SELECT * FROM ongs WHERE email = '$emailOuUsuario'";
-    $resultado = mysqli_query($conexao, $sql);
-    $dados = mysqli_fetch_assoc($resultado);
+// Verifica se os campos foram preenchidos
+if (empty($login) || empty($senha)) {
+    die("Preencha todos os campos.");
 }
 
-// Verifica se encontrou o usuário e se a senha está correta
-if ($dados && password_verify($senha, $dados["senha"])) {
-    $_SESSION["usuario_id"] = $dados["id"];
-    header("Location: ../html/dashboard.html");
-    exit;
-} else {
-    echo "Email/usuário ou senha incorretos.";
+
+// =====================================
+// PROCURA O USUÁRIO PELO E-MAIL
+// =====================================
+
+$sql = "SELECT idMUsuario, nome, email, senha, fotoPerfil
+        FROM MoldeUsuario
+        WHERE email = ?";
+
+$stmt = $conexao->prepare($sql);
+
+if (!$stmt) {
+    die("Erro ao preparar consulta: " . $conexao->error);
 }
 
-//fecha a conexão com o banco de dados
-mysqli_close($conexao);
+$stmt->bind_param("s", $login);
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+$usuario = $resultado->fetch_assoc();
+
+$stmt->close();
+
+
+// =====================================
+// VERIFICA SE O USUÁRIO EXISTE
+// =====================================
+
+if (!$usuario) {
+    die("E-mail ou senha incorretos.");
+}
+
+
+// =====================================
+// VERIFICA A SENHA
+// =====================================
+
+if (!password_verify($senha, $usuario["senha"])) {
+    die("E-mail ou senha incorretos.");
+}
+
+
+// =====================================
+// CRIA A SESSÃO
+// =====================================
+
+$_SESSION["usuario_id"] = $usuario["idMUsuario"];
+$_SESSION["usuario_nome"] = $usuario["nome"];
+$_SESSION["usuario_email"] = $usuario["email"];
+$_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
+
+
+// =====================================
+// REDIRECIONA
+// =====================================
+
+header("Location: ../html/inicialPage.html");
+exit;
+
+?>
