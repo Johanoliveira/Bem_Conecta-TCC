@@ -1,3 +1,56 @@
+<?php
+
+session_start();
+
+require_once "../php/conexao.php";
+
+// Verifica se existe usuário logado
+if (!isset($_SESSION["usuario_id"])) {
+    header("Location: login.html");
+    exit;
+}
+
+$idUsuario = $_SESSION["usuario_id"];
+
+
+// Busca os dados do usuário
+$sql = "SELECT idMUsuario, nome, email, telefone, fotoPerfil
+        FROM MoldeUsuario
+        WHERE idMUsuario = ?";
+
+$stmt = $conexao->prepare($sql);
+
+if (!$stmt) {
+    die("Erro ao preparar consulta: " . $conexao->error);
+}
+
+$stmt->bind_param("i", $idUsuario);
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+$usuario = $resultado->fetch_assoc();
+
+$stmt->close();
+
+
+// Verifica se o usuário existe
+if (!$usuario) {
+    session_destroy();
+
+    header("Location: login.html");
+    exit;
+}
+
+
+// Dados
+$nome = $usuario["nome"] ?: "-";
+$email = $usuario["email"] ?: "-";
+$telefone = $usuario["telefone"] ?: "-";
+$foto = $usuario["fotoPerfil"] ?: "perfil.png";
+
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -19,10 +72,10 @@
 
         <div class="logos">
             <div class="logo-foto">
-                <img src="../img/logo/logo.webp" loading="lazy">
+                <img src="../img/logo/logo.webp" loading="lazy" title="logo">
             </div>
             <div class="logo-escrita">
-                <img src="../img/logo/escrita.png" loading="lazy">
+                <img src="../img/logo/escrita.png" loading="lazy" title="logo">
             </div>
         </div>
 
@@ -132,9 +185,13 @@
                 <div class="perfil-cabecalho">
 
                     <div class="foto-perfil">
-                        <img src="https://i.pravatar.cc/300?img=12" alt="Foto de perfil">
+                        <img
+                            id="fotoUsuario"
+                            src="../img/perfil/<?php echo htmlspecialchars($foto); ?>"
+                            alt="Foto de perfil"
+                        >
 
-                        <button class="editar-foto">
+                        <button class="editar-foto" title="editar-foto">
                             <i class="fa-solid fa-camera"></i>
                         </button>
                     </div>
@@ -142,11 +199,13 @@
 
                     <div class="informacoes-principais">
 
-                        <h2>Pedro Henrique</h2>
+                        <h2 id="nomeUsuario">
+                            <?php echo htmlspecialchars($nome); ?>
+                        </h2>
 
-                        <p class="email">
+                        <p class="email" id="emailUsuario">
                             <i class="fa-solid fa-envelope"></i>
-                            pedro@email.com
+                            <?php echo htmlspecialchars($email); ?>
                         </p>
 
                         <p class="membro">
@@ -177,17 +236,24 @@
 
                         <div class="campo">
                             <span>Nome completo</span>
-                            <p>Pedro Henrique</p>
+                            <p id="nomeCompleto">
+                            <?php echo htmlspecialchars($nome); ?>
+                            </p>
                         </div>
 
                         <div class="campo">
                             <span>E-mail</span>
-                            <p>pedro@email.com</p>
+                            <p class="email" id="emailUsuario">
+                            <i class="fa-solid fa-envelope"></i>
+                            <?php echo htmlspecialchars($email); ?>
+                        </p>
                         </div>
 
                         <div class="campo">
                             <span>Telefone</span>
-                            <p>(00) 00000-0000</p>
+                            <p id="telefoneUsuario">
+                                <?php echo htmlspecialchars($telefone); ?>
+                            </p>
                         </div>
 
                         <div class="campo">
@@ -319,6 +385,8 @@
 
     </main>
 
+    <script src="../js/perfil.js"></script>
+    
 </body>
 
 </html>
