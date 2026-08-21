@@ -113,6 +113,7 @@ CREATE TABLE campanhas (
     dataInicio DATETIME DEFAULT CURRENT_TIMESTAMP,
     dataFim DATETIME,
     status VARCHAR(20) DEFAULT 'ativa',
+    COUNT(DISTINCT doacoes.idCampanha),
 
     FOREIGN KEY (idONG)
         REFERENCES ONGs(idONG)

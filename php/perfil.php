@@ -149,13 +149,18 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
             <!-- CARD DE IMPACTO -->
             <div class="impacto">
-
                 <h2>Seu Impacto</h2>
-
-                <p><strong>R$ 320,00</strong> doados</p>
-                <p><strong>8</strong> campanhas apoiadas</p>
-                <p><strong>3</strong> ONGs favoritas</p>
-
+                <p>
+                    <strong id="totalDoado">-</strong> doados
+                </p>
+                <p>
+                    <strong id="campanhasApoiadas">-</strong>
+                    campanhas apoiadas
+                </p>
+                <p>
+                    <strong id="ongsFavoritas">-</strong>
+                    ONGs favoritas
+                </p>
             </div>
 
             <div class="meus-posts">
@@ -210,7 +215,8 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
                         <p class="membro">
                             <i class="fa-solid fa-calendar"></i>
-                            Membro desde 2026
+                            Membro desde
+                            <span id="dataCriacao">-</span>
                         </p>
 
                     </div>
@@ -268,18 +274,11 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
                 <!-- INTERESSES -->
                 <div class="secao interesses">
-
                     <h2>Causas que você apoia</h2>
-
-                    <div class="tags">
-
-                        <span>🌱 Meio Ambiente</span>
-                        <span>📚 Educação</span>
-                        <span>💧 Acesso à Água</span>
-                        <span>❤️ Saúde</span>
-
-                    </div>
-
+                    <div class="tags" id="listaCausas">
+                    <span>-</span>
+                </div>
+                
                 </div>
 
             </div>
@@ -295,7 +294,7 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
                     <div>
                         <span>Total Doado</span>
-                        <h2>R$ 320,00</h2>
+                        <h2 id="totalDoadoEstatistica">-</h2>
                     </div>
                 </div>
 
@@ -307,7 +306,7 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
                     <div>
                         <span>Campanhas</span>
-                        <h2>8</h2>
+                        <h2 id="campanhasEstatistica">-</h2>
                     </div>
                 </div>
 
@@ -319,7 +318,7 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
 
                     <div>
                         <span>ONGs Favoritas</span>
-                        <h2>3</h2>
+                        <h2 id="ongsEstatistica">-</h2>
                     </div>
                 </div>
 
