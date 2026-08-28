@@ -1,0 +1,232 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f7f6;
+    min-height: 100vh;
+}
+
+
+/* CABEÇALHO */
+
+header {
+    background-color: #2e7d32;
+    color: white;
+    padding: 20px 8%;
+}
+
+header h1 {
+    font-size: 24px;
+}
+
+
+/* CONTAINER */
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 40px auto;
+
+    display: flex;
+    gap: 30px;
+}
+
+
+/* CARDS */
+
+.card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dados {
+    flex: 2;
+}
+
+.resumo {
+    flex: 1;
+}
+
+
+/* TÍTULOS */
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+/* LABELS */
+
+label {
+    display: block;
+
+    margin-top: 15px;
+    margin-bottom: 6px;
+
+    color: #444;
+    font-weight: bold;
+}
+
+
+/* INPUTS */
+
+input {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    font-size: 15px;
+}
+
+
+/* VALORES */
+
+.valores {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.valor {
+    flex: 1;
+
+    padding: 12px;
+
+    background-color: white;
+
+    border: 2px solid #2e7d32;
+
+    color: #2e7d32;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+}
+
+.valor:hover {
+    background-color: #2e7d32;
+    color: white;
+}
+
+
+/* CAMPO PERSONALIZADO */
+
+.campo-personalizado {
+    display: none;
+
+    margin-bottom: 10px;
+}
+
+.campo-personalizado input {
+    border: 2px solid #2e7d32;
+}
+
+.personalizado {
+    border-style: dashed;
+}
+
+
+/* FORMAS DE PAGAMENTO */
+
+.pagamentos {
+    display: flex;
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.pagamentos button {
+    flex: 1;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+
+    background-color: white;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+}
+
+.pagamentos button:hover {
+    border-color: #2e7d32;
+}
+
+
+/* BOTÃO PRINCIPAL */
+
+.botao {
+    width: 100%;
+
+    padding: 15px;
+
+    margin-top: 25px;
+
+    background-color: #2e7d32;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 6px;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.botao:hover {
+    background-color: #256628;
+}
+
+
+/* RESUMO */
+
+.resumo p {
+    margin: 15px 0;
+
+    color: #555;
+}
+
+.total {
+    font-size: 24px;
+
+    font-weight: bold;
+
+    color: #2e7d32 !important;
+}
+
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 700px) {
+
+    .container {
+        flex-direction: column;
+    }
+
+    .valores {
+        flex-wrap: wrap;
+    }
+
+    .valor {
+        min-width: 40%;
+    }
+}
