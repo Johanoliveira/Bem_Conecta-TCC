@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pagamento - Doação</title>
+
+    <link rel="stylesheet" href="../css/pagamento.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Bem Conecta</h1>
+    </header>
+
+    <main class="container">
+
+        <section class="card dados">
+
+            <h2>Faça sua doação</h2>
+
+            <label>Escolha o valor da doação</label>
+
+            <div class="valores">
+
+                <button class="valor" data-valor="5">
+                    R$ 5
+                </button>
+
+                <button class="valor" data-valor="10">
+                    R$ 10
+                </button>
+
+                <button class="valor" data-valor="15">
+                    R$ 15
+                </button>
+
+                <button class="valor personalizado" id="botaoPersonalizado">
+                    Outro valor
+                </button>
+
+            </div>
+
+            <div id="campoPersonalizado" class="campo-personalizado">
+
+                <label for="outro">
+                    Digite um valor acima de R$ 15
+                </label>
+
+                <input
+                    type="number"
+                    id="outro"
+                    min="15.01"
+                    step="0.01"
+                    placeholder="Ex: 20,00"
+                >
+
+            </div>
+
+
+            <label>Forma de pagamento</label>
+
+            <div class="pagamentos">
+
+                <button type="button">
+                    PIX
+                </button>
+
+                <button type="button">
+                    Cartão
+                </button>
+
+                <button type="button">
+                    Boleto
+                </button>
+
+            </div>
+
+
+            <label for="nome">
+                Nome completo
+            </label>
+
+            <input
+                type="text"
+                id="nome"
+                placeholder="Digite seu nome"
+            >
+
+
+            <label for="email">
+                E-mail
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Digite seu e-mail"
+            >
+
+
+            <button class="botao">
+                Continuar para pagamento
+            </button>
+
+        </section>
+
+
+        <aside class="card resumo">
+
+            <h2>Resumo da doação</h2>
+
+            <p>Valor da doação:</p>
+
+            <p class="total" id="valorResumo">
+                R$ 5,00
+            </p>
+
+            <p>
+                💚 Sua contribuição ajudará instituições
+                e pessoas que precisam de apoio.
+            </p>
+
+            <hr>
+
+            <p>
+                <strong>Pagamento seguro</strong>
+            </p>
+
+            <p>
+                Seus dados serão tratados com segurança.
+            </p>
+
+        </aside>
+
+    </main>
+
+
+    <script>
+
+        const botoesValor = document.querySelectorAll(".valor");
+        const campoPersonalizado =
+            document.getElementById("campoPersonalizado");
+
+        const outro =
+            document.getElementById("outro");
+
+        const valorResumo =
+            document.getElementById("valorResumo");
+
+        const botaoPersonalizado =
+            document.getElementById("botaoPersonalizado");
+
+
+        // Valores de R$ 5, R$ 10 e R$ 15
+        botoesValor.forEach(function(botao) {
+
+            botao.addEventListener("click", function() {
+
+                const valor = Number(
+                    botao.getAttribute("data-valor")
+                );
+
+                valorResumo.textContent =
+                    "R$ " + valor.toFixed(2).replace(".", ",");
+
+                campoPersonalizado.style.display = "none";
+
+                outro.value = "";
+
+            });
+
+        });
+
+
+        // Mostrar campo de valor personalizado
+        botaoPersonalizado.addEventListener("click", function() {
+
+            campoPersonalizado.style.display = "block";
+
+            outro.focus();
+
+        });
+
+
+        // Atualizar o resumo com o valor personalizado
+        outro.addEventListener("input", function() {
+
+            const valor = Number(outro.value);
+
+            if (valor > 15) {
+
+                valorResumo.textContent =
+                    "R$ " + valor.toFixed(2).replace(".", ",");
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
+```
