@@ -114,6 +114,11 @@ $stmtONG->close();
 // Fecha a conexão
 $conexao->close();
 
-echo "Cadastro da ONG realizado com sucesso!";
+// =====================================
+// REDIRECIONA
+// =====================================
+
+header("Location: ../php/inicialPage.php");
+exit;
 
 ?>

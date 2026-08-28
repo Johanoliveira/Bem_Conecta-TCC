@@ -75,7 +75,7 @@ $_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
 // REDIRECIONA
 // =====================================
 
-header("Location: ../html/inicialPage.html");
+header("Location: ../php/inicialPage.php");
 exit;
 
 ?>

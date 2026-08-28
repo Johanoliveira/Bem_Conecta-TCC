@@ -166,4 +166,10 @@ try {
 
 $conexao->close();
 
+// =====================================
+// REDIRECIONA
+// =====================================
+
+header("Location: ../php/inicialPage.php");
+exit;
 ?>
