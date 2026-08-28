@@ -1,3 +1,18 @@
+<?php
+session_start();
+
+if (!isset($_SESSION["usuario_id"])) {
+    header("Location: login.html");
+    exit;
+}
+
+$nome = $_SESSION["usuario_nome"];
+$foto = $_SESSION["usuario_foto"];
+?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -32,8 +47,8 @@
         <button class="search-btn" id="searchBtn">🔍</button>
     </div>
 
-    <button class="profile-btn">
-        <img src="https://i.pravatar.cc/40" alt="Avatar">
+    <button class="profile-btn" onclick="window.location.href='perfil.php'">
+        <img src="../php/<?php echo htmlspecialchars($fotoPerfil); ?>" alt="img/jpg/ftPerfil.jpg">
         Meu Perfil
     </button>
     </div>
@@ -68,7 +83,7 @@
     <main class="feed">
 
     <section class="welcome-card">
-        <h2>Bem-vindo de volta, Pedro!</h2>
+        <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
         <p>Veja as campanhas mais recentes e continue apoiando projetos sociais que transformam vidas.</p>
     </section>
 

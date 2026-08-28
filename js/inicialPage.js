@@ -15,7 +15,7 @@ searchBtn.addEventListener("click", () => {
 
 // POST PARA TESTE
 
-const modoTeste = false;
+const modoTeste = true;
 
 const postsTeste = [
     {
