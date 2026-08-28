@@ -2,7 +2,7 @@
 
 session_start();
 
-require_once "../php/conexao.php";
+require_once "conexao.php";
 
 // Verifica se existe usuário logado
 if (!isset($_SESSION["usuario_id"])) {
@@ -47,7 +47,7 @@ if (!$usuario) {
 $nome = $usuario["nome"] ?: "-";
 $email = $usuario["email"] ?: "-";
 $telefone = $usuario["telefone"] ?: "-";
-$foto = $usuario["fotoPerfil"] ?: "perfil.png";
+$foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
 ?>
 
@@ -192,12 +192,12 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
                     <div class="foto-perfil">
                         <img
                             id="fotoUsuario"
-                            src="../img/perfil/<?php echo htmlspecialchars($foto); ?>"
+                            src="../<?php echo htmlspecialchars($foto); ?>"
                             alt="Foto de perfil"
                         >
 
-                        <button class="editar-foto" title="editar-foto">
-                            <i class="fa-solid fa-camera"></i>
+                        <button class="editar-foto" type="button" onclick="abrirPopupFoto()">
+                            ✎
                         </button>
                     </div>
 
@@ -278,7 +278,6 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
                     <div class="tags" id="listaCausas">
                     <span>-</span>
                 </div>
-                
                 </div>
 
             </div>
@@ -383,6 +382,55 @@ $foto = $usuario["fotoPerfil"] ?: "perfil.png";
         </section>
 
     </main>
+
+    <div id="popupFoto" class="popup-foto">
+    <div class="popup-conteudo">
+
+            <button class="fechar-popup" type="button" onclick="fecharPopupFoto()">
+                &times;
+            </button>
+
+            <h2>Alterar foto de perfil</h2>
+
+            <form id="formFoto" enctype="multipart/form-data">
+
+                <div class="preview-foto">
+                    <span>+</span>
+                </div>
+
+                <label for="fotoPerfil" class="selecionar-foto">
+                    Escolher foto
+                </label>
+
+                <input 
+                    type="file" 
+                    id="fotoPerfil" 
+                    name="fotoPerfil"
+                    accept="image/jpeg,image/png,image/webp"
+                    required
+                >
+
+                <div class="botoes-popup">
+
+                    <button 
+                        type="button" 
+                        class="cancelar-foto" 
+                        onclick="fecharPopupFoto()">
+                        Cancelar
+                    </button>
+
+                    <button 
+                        type="submit" 
+                        class="salvar-foto">
+                        Salvar foto
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
 
     <script src="../js/perfil.js"></script>
     

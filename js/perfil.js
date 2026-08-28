@@ -110,6 +110,136 @@ async function carregarPerfil() {
 
 }
 
+//função para abrir foto perfil e editar ela
+function abrirPopupFoto() {
+    document.getElementById("popupFoto").classList.add("ativo");
+}
+
+function fecharPopupFoto() {
+    document.getElementById("popupFoto").classList.remove("ativo");
+
+    document.getElementById("fotoPerfil").value = "";
+
+    document.querySelector(".preview-foto").innerHTML = "<span>+</span>";
+}
+
+
+// =========================
+// PRÉVIA DA FOTO
+// =========================
+
+document.getElementById("fotoPerfil").addEventListener("change", function () {
+
+    const arquivo = this.files[0];
+
+    if (!arquivo) {
+        return;
+    }
+
+    if (!arquivo.type.startsWith("image/")) {
+        alert("Selecione uma imagem válida.");
+        this.value = "";
+        return;
+    }
+
+    const leitor = new FileReader();
+
+    leitor.onload = function (e) {
+
+        document.querySelector(".preview-foto").innerHTML = `
+            <img src="${e.target.result}" alt="Prévia da foto">
+        `;
+
+    };
+
+    leitor.readAsDataURL(arquivo);
+});
+
+
+// =========================
+// ENVIO DA FOTO
+// =========================
+
+document.getElementById("formFoto").addEventListener("submit", async function (event) {
+
+    event.preventDefault();
+
+    const arquivo = document.getElementById("fotoPerfil").files[0];
+
+    if (!arquivo) {
+        alert("Escolha uma foto primeiro.");
+        return;
+    }
+
+    const formulario = new FormData();
+
+    formulario.append("fotoPerfil", arquivo);
+
+    const botao = document.querySelector(".salvar-foto");
+
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+
+    try {
+
+        const resposta = await fetch("uploadFoto.php", {
+            method: "POST",
+            body: formulario
+        });
+
+        const texto = await resposta.text();
+
+        console.log("Resposta do PHP:", texto);
+
+        let dados;
+
+        try {
+            dados = JSON.parse(texto);
+        } catch (erro) {
+            console.error("O PHP não retornou JSON válido.");
+            console.error(texto);
+
+            alert("O PHP retornou um erro. Abra o F12 e veja o Console.");
+            return;
+        }
+
+        if (!dados.sucesso) {
+            alert(dados.mensagem);
+            return;
+        }
+
+        // Atualiza a foto exibida no perfil
+        const fotoPerfil = document.querySelector(".foto-perfil img");
+
+        if (fotoPerfil) {
+            fotoPerfil.src = "../" + dados.foto + "?v=" + Date.now();
+        }
+
+        // Atualiza também a foto da topbar, se existir
+        const fotoTopo = document.querySelector(".perfil-mini img");
+
+        if (fotoTopo) {
+            fotoTopo.src = dados.foto + "?v=" + Date.now();
+        }
+
+        alert("Foto alterada com sucesso!");
+
+        fecharPopupFoto();
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        alert("Ocorreu um erro ao enviar a foto.");
+
+    } finally {
+
+        botao.disabled = false;
+        botao.textContent = "Salvar foto";
+
+    }
+
+});
 
 // Carrega o perfil quando a página abre
 carregarPerfil();
