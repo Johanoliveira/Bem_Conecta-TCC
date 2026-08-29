@@ -1,43 +1,175 @@
 <?php
 
-// Dados de conexão (ajuste conforme seu ambiente)
-$host = "localhost";
-$dbuser = "root";
-$dbpass = "";
-$dbname = "BemConecta";
+require_once __DIR__ . "/conexao.php";
 
-// Conecta ao banco de dados
-$conexao = mysqli_connect($host, $dbuser, $dbpass, $dbname);
-
-if (!$conexao) {
-    die("Erro ao conectar: " . mysqli_connect_error());
+if (!isset($conexao)) {
+    die("Erro: conexão com o banco de dados não foi configurada.");
 }
 
-// Pega os dados enviados pelo formulário
-$usuario = $_POST["usuario"];
-$dataNascimento = $_POST["data-nascimento"];
-$email = $_POST["email"];
-$telefone = $_POST["telefone"];
-$senha = $_POST["senha"];
-$confirmarSenha = $_POST["confirmar-senha"];
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    die("Acesso inválido.");
+}
 
-// Verifica se as senhas são iguais
-if ($senha != $confirmarSenha) {
+
+// Recebe os dados do formulário
+
+$usuario = trim($_POST["usuario"] ?? "");
+$dataNasc = $_POST["dataNasc"] ?? "";
+$email = trim($_POST["email"] ?? "");
+$telefone = trim($_POST["telefone"] ?? "");
+$senha = $_POST["senha"] ?? "";
+$confirmarSenha = $_POST["confirmar-senha"] ?? "";
+
+
+// Verifica os campos
+
+if (
+    empty($usuario) ||
+    empty($dataNasc) ||
+    empty($email) ||
+    empty($telefone) ||
+    empty($senha) ||
+    empty($confirmarSenha)
+) {
+    die("Preencha todos os campos.");
+}
+
+
+// Verifica as senhas
+
+if ($senha !== $confirmarSenha) {
     die("As senhas não coincidem.");
 }
 
-// Criptografa a senha
-$senhaCriptografada = password_hash($senha, PASSWORD_DEFAULT);
 
-// Monta e executa o comando de inserção
-$sql = "INSERT INTO doadores (usuario, data_nascimento, email, telefone, senha)
-        VALUES ('$usuario', '$dataNascimento', '$email', '$telefone', '$senhaCriptografada')";
+// Verifica os termos
 
-if (mysqli_query($conexao, $sql)) {
-    echo "Cadastro realizado com sucesso!";
-} else {
-    echo "Erro ao cadastrar: " . mysqli_error($conexao);
+if (!isset($_POST["termos"])) {
+    die("Você precisa aceitar os Termos de Uso.");
 }
 
-//fecha a conexão com o banco de dados
-mysqli_close($conexao);
+
+// Verifica se o e-mail já existe
+
+$sql = "SELECT idMUsuario
+        FROM MoldeUsuario
+        WHERE email = ?";
+
+$stmt = $conexao->prepare($sql);
+
+if (!$stmt) {
+    die("Erro ao preparar consulta: " . $conexao->error);
+}
+
+$stmt->bind_param("s", $email);
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+if ($resultado->num_rows > 0) {
+    die("Este e-mail já está cadastrado.");
+}
+
+$stmt->close();
+
+
+// Criptografa a senha
+
+$senhaCriptografada = password_hash(
+    $senha,
+    PASSWORD_DEFAULT
+);
+
+
+// Inicia a transação
+
+$conexao->begin_transaction();
+
+try {
+
+    // Cria o usuário base
+
+    $sql = "INSERT INTO MoldeUsuario
+            (nome, email, senha, telefone)
+            VALUES (?, ?, ?, ?)";
+
+    $stmt = $conexao->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception(
+            "Erro ao preparar MoldeUsuario: " . $conexao->error
+        );
+    }
+
+    $stmt->bind_param(
+        "ssss",
+        $usuario,
+        $email,
+        $senhaCriptografada,
+        $telefone
+    );
+
+    if (!$stmt->execute()) {
+        throw new Exception(
+            "Erro ao cadastrar usuário: " . $stmt->error
+        );
+    }
+
+    $idMUsuario = $conexao->insert_id;
+
+    $stmt->close();
+
+
+    // Cria o usuário comum
+
+    $sql = "INSERT INTO UsuarioComum
+            (idMoldeUsuario, dataNasc)
+            VALUES (?, ?)";
+
+    $stmt = $conexao->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception(
+            "Erro ao preparar UsuarioComum: " . $conexao->error
+        );
+    }
+
+    $stmt->bind_param(
+        "is",
+        $idMUsuario,
+        $dataNasc
+    );
+
+    if (!$stmt->execute()) {
+        throw new Exception(
+            "Erro ao criar usuário comum: " . $stmt->error
+        );
+    }
+
+    $stmt->close();
+
+
+    // Confirma as alterações
+
+    $conexao->commit();
+
+    echo "Cadastro realizado com sucesso!";
+
+
+} catch (Exception $e) {
+
+    $conexao->rollback();
+
+    echo "Erro ao cadastrar: " . $e->getMessage();
+}
+
+
+$conexao->close();
+
+// =====================================
+// REDIRECIONA
+// =====================================
+
+header("Location: ../php/inicialPage.php");
+exit;
+?>

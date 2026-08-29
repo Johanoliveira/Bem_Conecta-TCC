@@ -85,10 +85,15 @@ main.cadastro-container {
 /* ===== Card ===== */
 .cadastro-card {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 
     width: 450px;
     max-width: calc(100% - 40px);
+
+    margin: 25px auto 0;
+    padding: 40px 32px;
+
+    height: auto;
     min-height: 250px;
 
     margin: 25px auto 0;

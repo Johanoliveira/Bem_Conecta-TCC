@@ -88,7 +88,6 @@ main.login-container {
 
     width: 450px;
     max-width: calc(100% - 40px);
-    max-height: 500px;
 
     margin: 25px auto 0;
     padding: 40px 32px;
@@ -140,6 +139,7 @@ main.login-container {
 .form-group {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .form-group label {
@@ -149,9 +149,9 @@ main.login-container {
     font-size: 0.95em;
 }
 
-.form-group input[type="text"],
-.form-group input[type="password"] {
+.form-group input {
     width: 100%;
+    height: 46px;
     padding: 12px 14px;
     border: 2px solid #1d962c;
     border-radius: 6px;
@@ -161,8 +161,7 @@ main.login-container {
     transition: border-color 0.2s, background-color 0.2s;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input:focus {
     outline: none;
     border-color: #27ae60;
     background-color: #fff;
