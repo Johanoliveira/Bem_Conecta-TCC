@@ -269,29 +269,6 @@ footer p {
             
 }
 
-.etapa {
-    display: none;
-}
-
-.etapa.ativa {
-    display: flex;
-    animation: aparecerEtapa 0.6s ease;
-}
-
-@keyframes aparecerEtapa {
-    from {
-        opacity: 0;
-        transform: translateY(25px);
-        filter: blur(5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-    }
-}
-
 .termos {
     display: flex !important;
     flex-direction: row !important;
