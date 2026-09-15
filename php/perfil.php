@@ -441,8 +441,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                         $diferenca = $agora->diff($dataAtividade);
 
-<<<<<<< HEAD
-=======
 
                         if ($diferenca->days == 0) {
 
@@ -487,7 +485,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 <?php endif; ?>
 
->>>>>>> 1dc1ee352f67e988ad782550a5642e9093ab5b71
             </div>
 
         </section>
