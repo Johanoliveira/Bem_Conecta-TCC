@@ -129,11 +129,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                     Campanhas
                 </a>
 
-                <a href="#">
-                    <span>🎯</span>
-                    Voluntariado
-                </a>
-
                 <a href="#" class="ativo">
                     <span>👤</span>
                     Meu Perfil
@@ -358,22 +353,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                     </div>
 
                     <span>2 dias</span>
-
-                </div>
-
-
-                <div class="atividade-item">
-
-                    <div class="atividade-icone">
-                        🎯
-                    </div>
-
-                    <div>
-                        <h3>Você participou de uma atividade</h3>
-                        <p>Projeto Educação que Transforma</p>
-                    </div>
-
-                    <span>5 dias</span>
 
                 </div>
 
