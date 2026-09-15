@@ -14,7 +14,7 @@ $idUsuario = $_SESSION["usuario_id"];
 
 
 // Busca os dados do usuário
-$sql = "SELECT idMUsuario, nome, email, telefone, fotoPerfil
+$sql = "SELECT idMUsuario, nome, email, telefone, fotoPerfil, nivelDeSeguranca
         FROM MoldeUsuario
         WHERE idMUsuario = ?";
 
@@ -33,6 +33,91 @@ $usuario = $resultado->fetch_assoc();
 
 $stmt->close();
 
+$nivel = (int) ($usuario["nivelDeSeguranca"] ?? 1);
+
+// =====================================
+// ATIVIDADES RECENTES
+// =====================================
+
+$sqlAtividades = "
+    SELECT *
+    FROM (
+        SELECT
+            'doacao' AS tipo,
+            'Você realizou uma doação' AS titulo,
+            CONCAT(
+                'R$ ',
+                REPLACE(FORMAT(d.valor, 2), '.', ','),
+                ' para a campanha ',
+                c.titulo
+            ) AS descricao,
+            d.dataDoacao AS dataAtividade
+        FROM doacoes d
+        INNER JOIN campanhas c
+            ON d.idCampanha = c.idCampanha
+        INNER JOIN UsuarioComum uc
+            ON d.idUsuarioComum = uc.idUsuarioComum
+        WHERE uc.idMoldeUsuario = ?
+
+        UNION ALL
+
+        SELECT
+            'favorito' AS tipo,
+            'Você adicionou uma ONG aos favoritos' AS titulo,
+            mu.nome AS descricao,
+            f.dataFavorito AS dataAtividade
+        FROM favoritos f
+        INNER JOIN ONGs o
+            ON f.idONG = o.idONG
+        INNER JOIN MoldeUsuario mu
+            ON o.idMoldeUsuario = mu.idMUsuario
+        INNER JOIN UsuarioComum uc
+            ON f.idUsuarioComum = uc.idUsuarioComum
+        WHERE uc.idMoldeUsuario = ?
+
+        UNION ALL
+
+        SELECT
+            'voluntariado' AS tipo,
+            'Você participou de uma atividade' AS titulo,
+            a.titulo AS descricao,
+            v.dataInscricao AS dataAtividade
+        FROM voluntariado v
+        INNER JOIN atividades a
+            ON v.idAtividade = a.idAtividade
+        INNER JOIN UsuarioComum uc
+            ON v.idUsuarioComum = uc.idUsuarioComum
+        WHERE uc.idMoldeUsuario = ?
+    ) AS atividades_recentes
+
+    ORDER BY dataAtividade DESC
+    LIMIT 10
+";
+
+$stmtAtividades = $conexao->prepare($sqlAtividades);
+
+if (!$stmtAtividades) {
+    die("Erro ao preparar atividades recentes: " . $conexao->error);
+}
+
+$stmtAtividades->bind_param(
+    "iii",
+    $idUsuario,
+    $idUsuario,
+    $idUsuario
+);
+
+$stmtAtividades->execute();
+
+$resultadoAtividades = $stmtAtividades->get_result();
+
+$atividadesRecentes = [];
+
+while ($atividade = $resultadoAtividades->fetch_assoc()) {
+    $atividadesRecentes[] = $atividade;
+}
+
+$stmtAtividades->close();
 
 // Verifica se o usuário existe
 if (!$usuario) {
@@ -141,28 +226,14 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
             </div>
 
-
-            <!-- CARD DE IMPACTO -->
-            <div class="impacto">
-                <h2>Seu Impacto</h2>
-                <p>
-                    <strong id="totalDoado">-</strong> doados
-                </p>
-                <p>
-                    <strong id="campanhasApoiadas">-</strong>
-                    campanhas apoiadas
-                </p>
-                <p>
-                    <strong id="ongsFavoritas">-</strong>
-                    ONGs favoritas
-                </p>
-            </div>
-
-            <div class="meus-posts">
-                <a href="#">
-                    Meus Posts
-                </a>
-            </div>
+            <!-- só desaparece para usuarios comuns -->
+            <?php if ($nivel >= 2): ?>
+                <div class="meus-posts">
+                    <a href="#">
+                        Meus Posts
+                    </a>
+                </div>
+            <?php endif; ?>
 
         </aside>
 
@@ -324,38 +395,99 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 <h2>Atividade Recente</h2>
 
+                <?php if (empty($atividadesRecentes)): ?>
 
-                <div class="atividade-item">
+                    <div class="atividade-item">
 
-                    <div class="atividade-icone">
-                        ❤️
+                        <div class="atividade-icone">
+                            📌
+                        </div>
+
+                        <div>
+                            <h3>Nenhuma atividade recente</h3>
+                            <p>Suas ações aparecerão aqui.</p>
+                        </div>
+
                     </div>
 
-                    <div>
-                        <h3>Você realizou uma doação</h3>
-                        <p>R$ 50,00 para a campanha Água para Todos</p>
-                    </div>
+                <?php else: ?>
 
-                    <span>Hoje</span>
+                    <?php foreach ($atividadesRecentes as $atividade): ?>
 
-                </div>
+                        <?php
+
+                        // Define o ícone
+                        if ($atividade["tipo"] === "doacao") {
+
+                            $icone = "❤️";
+
+                        } elseif ($atividade["tipo"] === "favorito") {
+
+                            $icone = "⭐";
+
+                        } elseif ($atividade["tipo"] === "voluntariado") {
+
+                            $icone = "🎯";
+
+                        } else {
+
+                            $icone = "📌";
+                        }
 
 
-                <div class="atividade-item">
+                        // Calcula quanto tempo passou
+                        $dataAtividade = new DateTime($atividade["dataAtividade"]);
+                        $agora = new DateTime();
 
-                    <div class="atividade-icone">
-                        ⭐
-                    </div>
+                        $diferenca = $agora->diff($dataAtividade);
 
-                    <div>
-                        <h3>Você adicionou uma ONG aos favoritos</h3>
-                        <p>Instituto Educação para Todos</p>
-                    </div>
+<<<<<<< HEAD
+=======
 
-                    <span>2 dias</span>
+                        if ($diferenca->days == 0) {
 
-                </div>
+                            $tempo = "Hoje";
 
+                        } elseif ($diferenca->days == 1) {
+
+                            $tempo = "Ontem";
+
+                        } else {
+
+                            $tempo = $diferenca->days . " dias";
+                        }
+
+                        ?>
+
+                        <div class="atividade-item">
+
+                            <div class="atividade-icone">
+                                <?= $icone ?>
+                            </div>
+
+                            <div>
+
+                                <h3>
+                                    <?= htmlspecialchars($atividade["titulo"]) ?>
+                                </h3>
+
+                                <p>
+                                    <?= htmlspecialchars($atividade["descricao"]) ?>
+                                </p>
+
+                            </div>
+
+                            <span>
+                                <?= htmlspecialchars($tempo) ?>
+                            </span>
+
+                        </div>
+
+                    <?php endforeach; ?>
+
+                <?php endif; ?>
+
+>>>>>>> 1dc1ee352f67e988ad782550a5642e9093ab5b71
             </div>
 
         </section>
