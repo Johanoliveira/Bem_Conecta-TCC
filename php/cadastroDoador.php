@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once __DIR__ . "/conexao.php";
 
 if (!isset($conexao)) {
@@ -153,22 +155,21 @@ try {
 
     $conexao->commit();
 
-    echo "Cadastro realizado com sucesso!";
+    $_SESSION["usuario_id"] = $idMUsuario;
+    $_SESSION["usuario_nome"] = $usuario;
+    $_SESSION["usuario_email"] = $email;
+    $_SESSION["usuario_foto"] = "perfil.png";
 
 
 } catch (Exception $e) {
 
     $conexao->rollback();
 
-    echo "Erro ao cadastrar: " . $e->getMessage();
+    die("Erro ao cadastrar: " . $e->getMessage());
 }
 
 
 $conexao->close();
-
-// =====================================
-// REDIRECIONA
-// =====================================
 
 header("Location: ../php/inicialPage.php");
 exit;

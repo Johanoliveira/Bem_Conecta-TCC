@@ -19,7 +19,7 @@ $foto = $_SESSION["usuario_foto"];
     <link rel="stylesheet" href="../css/inicialPage.css">
 </head>
 
-<body>
+<body data-usuario-nome="<?php echo htmlspecialchars($nome, ENT_QUOTES, 'UTF-8'); ?>">
 <!-- TOPO -->
 <header class="topbar">
     <div class="logos">
@@ -63,7 +63,6 @@ $foto = $_SESSION["usuario_foto"];
         <a href="#">❤️ Minhas Doações</a>
         <a href="#">📌 ONGs Favoritas</a>
         <a href="#">📄 Campanhas</a>
-        <a href="#">🎯 Voluntariado</a>
         <a href="#">👤 Meu Perfil</a>
         <a href="#">⚙ Configurações</a>
     </div>
@@ -122,6 +121,6 @@ $foto = $_SESSION["usuario_foto"];
     </aside>
 
 </div>
-<script src="../js/inicialPage.js"></script>
+<script src="../js/inicialPage.js?v=2"></script>
 </body>
 </html>
