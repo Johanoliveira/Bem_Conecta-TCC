@@ -63,7 +63,6 @@ $foto = $_SESSION["usuario_foto"];
         <a href="#">❤️ Minhas Doações</a>
         <a href="#">📌 ONGs Favoritas</a>
         <a href="#">📄 Campanhas</a>
-        <a href="#">🎯 Voluntariado</a>
         <a href="#">👤 Meu Perfil</a>
         <a href="#">⚙ Configurações</a>
     </div>

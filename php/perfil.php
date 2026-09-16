@@ -74,22 +74,7 @@ $sqlAtividades = "
         INNER JOIN UsuarioComum uc
             ON f.idUsuarioComum = uc.idUsuarioComum
         WHERE uc.idMoldeUsuario = ?
-
-        UNION ALL
-
-        SELECT
-            'voluntariado' AS tipo,
-            'Você participou de uma atividade' AS titulo,
-            a.titulo AS descricao,
-            v.dataInscricao AS dataAtividade
-        FROM voluntariado v
-        INNER JOIN atividades a
-            ON v.idAtividade = a.idAtividade
-        INNER JOIN UsuarioComum uc
-            ON v.idUsuarioComum = uc.idUsuarioComum
-        WHERE uc.idMoldeUsuario = ?
-    ) AS atividades_recentes
-
+    ) atividades
     ORDER BY dataAtividade DESC
     LIMIT 10
 ";
@@ -101,8 +86,7 @@ if (!$stmtAtividades) {
 }
 
 $stmtAtividades->bind_param(
-    "iii",
-    $idUsuario,
+    "ii",
     $idUsuario,
     $idUsuario
 );
@@ -166,7 +150,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
 
         <nav class="menu-superior">
-            <a href="#">Início</a>
+            <a href="inicialPage.php">Início</a>
             <a href="#">Projetos</a>
             <a href="#">ONGs</a>
             <a href="#">Doações</a>
@@ -194,7 +178,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 <h2>Menu</h2>
 
-                <a href="#">
+                <a href="inicialPage.php">
                     <span>🏠</span>
                     Página Inicial
                 </a>
@@ -424,10 +408,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                         } elseif ($atividade["tipo"] === "favorito") {
 
                             $icone = "⭐";
-
-                        } elseif ($atividade["tipo"] === "voluntariado") {
-
-                            $icone = "🎯";
 
                         } else {
 
