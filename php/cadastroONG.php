@@ -45,8 +45,8 @@ $fotoPerfil = "perfil.png";
 // ================================
 
 $sqlUsuario = "INSERT INTO MoldeUsuario
-(nome, email, senha, fotoPerfil, telefone)
-VALUES (?, ?, ?, ?, ?)";
+(nome, email, senha, fotoPerfil, telefone, nivelDeSeguranca)
+VALUES (?, ?, ?, ?, ?, 2)";
 
 $stmtUsuario = $conexao->prepare($sqlUsuario);
 
@@ -114,6 +114,11 @@ $stmtONG->close();
 // Fecha a conexão
 $conexao->close();
 
-echo "Cadastro da ONG realizado com sucesso!";
+// =====================================
+// REDIRECIONA
+// =====================================
+
+header("Location: ../php/inicialPage.php");
+exit;
 
 ?>
