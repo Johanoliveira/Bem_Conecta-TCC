@@ -239,19 +239,6 @@ CREATE TABLE atividades (
 -- PARTICIPAÇÃO EM ATIVIDADES
 -- =========================================
 
-CREATE TABLE voluntariado (
-    idUsuarioComum INT NOT NULL,
-    idAtividade INT NOT NULL,
-    dataInscricao DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (idUsuarioComum, idAtividade),
-
-    FOREIGN KEY (idUsuarioComum)
-        REFERENCES UsuarioComum(idUsuarioComum),
-
-    FOREIGN KEY (idAtividade)
-        REFERENCES atividades(idAtividade)
-);
 
 -- Curtidas
 CREATE TABLE curtidas (

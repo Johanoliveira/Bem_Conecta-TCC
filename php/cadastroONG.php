@@ -46,8 +46,8 @@ $fotoPerfil = "perfil.png";
 // Cria o registro base do usuário (dados comuns a qualquer tipo de conta)
 
 $sqlUsuario = "INSERT INTO MoldeUsuario
-(nome, email, senha, fotoPerfil, telefone)
-VALUES (?, ?, ?, ?, ?)";
+(nome, email, senha, fotoPerfil, telefone, nivelDeSeguranca)
+VALUES (?, ?, ?, ?, ?, 2)";
 
 // Prepara a consulta SQL usando placeholders (?) para evitar SQL Injection
 $stmtUsuario = $conexao->prepare($sqlUsuario);

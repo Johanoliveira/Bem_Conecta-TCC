@@ -12,9 +12,6 @@ $foto = $_SESSION["usuario_foto"];
 
 <!DOCTYPE html>
 <html lang="pt-BR">
-
-<!DOCTYPE html>
-<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,7 +45,7 @@ $foto = $_SESSION["usuario_foto"];
     </div>
 
     <button class="profile-btn" onclick="window.location.href='perfil.php'">
-        <img src="../php/<?php echo htmlspecialchars($fotoPerfil); ?>" alt="img/jpg/ftPerfil.jpg">
+        <img src="../php/<?php echo htmlspecialchars($foto); ?>" alt="img/jpg/ftPerfil.jpg">
         Meu Perfil
     </button>
     </div>
