@@ -220,7 +220,7 @@ $stmt->close();
 if (!empty($fotoAntiga)) {
 
     // Não tenta apagar a foto padrão
-    if ($fotoAntiga !== "img/perfil/perfil.png") {
+    if ($fotoAntiga !== "img/jpg/ftPerfil.jpg") {
 
         $caminhoAntigo = __DIR__ . "/../" . $fotoAntiga;
 

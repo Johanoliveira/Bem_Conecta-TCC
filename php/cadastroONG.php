@@ -9,14 +9,16 @@ require_once "conexao.php";
 // O operador ?? evita erro caso o campo não tenha sido enviado (assume string vazia)
 $nome = $_POST["nome"] ?? "";
 $cnpj = $_POST["cnpj"] ?? "";
+$descricao = trim($_POST["descricao"] ?? "");
 $email = $_POST["email"] ?? "";
 $telefone = $_POST["telefone"] ?? "";
 $senha = $_POST["senha"] ?? "";
 $confirmarSenha = $_POST["confirmar-senha"] ?? "";
+$fotoPerfil = null;
 
 
 // Verifica se algum dos campos essenciais está vazio
-if (empty($nome) || empty($cnpj) || empty($email) || empty($telefone) || empty($senha) || empty($confirmarSenha)) {
+if (empty($nome) || empty($cnpj) || empty($descricao) || empty($email) || empty($telefone) || empty($senha) || empty($confirmarSenha)) {
     // Interrompe o script se o usuário deixou algum campo em branco
     die("Preencha todos os campos.");
 }
@@ -35,9 +37,6 @@ $telefone = preg_replace('/\D/', '', $telefone);
 
 // Gera um hash seguro da senha usando o algoritmo padrão do PHP (bcrypt, por padrão)
 $senhaCriptografada = password_hash($senha, PASSWORD_DEFAULT);
-
-// Define uma foto de perfil padrão, já que o formulário não envia uma imagem
-$fotoPerfil = "perfil.png";
 
 
 // ================================
@@ -80,8 +79,8 @@ $stmtUsuario->close();
 // Cria o registro específico da ONG, vinculado ao usuário base criado acima
 
 $sqlONG = "INSERT INTO ONGs
-(idMoldeUsuario, CNPJ)
-VALUES (?, ?)";
+(idMoldeUsuario, descricao, CNPJ)
+VALUES (?, ?, ?)";
 
 // Prepara a consulta de inserção
 $stmtONG = $conexao->prepare($sqlONG);
@@ -93,8 +92,9 @@ if (!$stmtONG) {
 
 // Associa os valores aos parâmetros ("i" = inteiro, "s" = string)
 $stmtONG->bind_param(
-    "is",
+    "iss",
     $idMoldeUsuario,
+    $descricao,
     $cnpj
 );
 

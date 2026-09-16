@@ -119,7 +119,9 @@ if (!$usuarioComum) {
         "nome" => $usuario["nome"] ?: "-",
         "email" => $usuario["email"] ?: "-",
         "telefone" => $usuario["telefone"] ?: "-",
-        "foto" => $usuario["fotoPerfil"] ?: "perfil.png",
+        "foto" => (!empty($usuario["fotoPerfil"]) && !in_array($usuario["fotoPerfil"], ["perfil.png", "img/perfil/perfil.png"], true))
+            ? $usuario["fotoPerfil"]
+            : "img/jpg/ftPerfil.jpg",
         "dataCriacao" => $usuario["dataCriacao"] ?: "-",
         "cidade" => $usuario["cidade"] ?: "-",
         "estado" => $usuario["estado"] ?: "-",
@@ -287,7 +289,9 @@ echo json_encode([
 
     "telefone" => $usuario["telefone"] ?: "-",
 
-    "foto" => $usuario["fotoPerfil"] ?: "perfil.png",
+    "foto" => (!empty($usuario["fotoPerfil"]) && !in_array($usuario["fotoPerfil"], ["perfil.png", "img/perfil/perfil.png"], true))
+        ? $usuario["fotoPerfil"]
+        : "img/jpg/ftPerfil.jpg",
 
     "dataCriacao" => $dataCriacao,
 
