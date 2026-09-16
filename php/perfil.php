@@ -166,7 +166,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
 
         <nav class="menu-superior">
-            <a href="#">Início</a>
+            <a href="../php/inicialPage.php">Início</a>
             <a href="#">Projetos</a>
             <a href="#">ONGs</a>
             <a href="#">Doações</a>
@@ -194,7 +194,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 <h2>Menu</h2>
 
-                <a href="#">
+                <a href="../php/inicialPage.php">
                     <span>🏠</span>
                     Página Inicial
                 </a>
