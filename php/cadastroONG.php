@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once "conexao.php";
 
 // Recebe os dados do formulário
@@ -110,6 +112,10 @@ if (!$stmtONG->execute()) {
 
 $stmtONG->close();
 
+$_SESSION["usuario_id"] = $idMoldeUsuario;
+$_SESSION["usuario_nome"] = $nome;
+$_SESSION["usuario_email"] = $email;
+$_SESSION["usuario_foto"] = $fotoPerfil;
 
 // Fecha a conexão
 $conexao->close();

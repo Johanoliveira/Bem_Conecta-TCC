@@ -1,6 +1,7 @@
 const searchBtn = document.getElementById("searchBtn");
 const searchBox = document.querySelector(".search-box");
 const searchInput = document.getElementById("searchInput");
+const nomeUsuario = document.body.dataset.usuarioNome || "Usuário";
 
 searchBtn.addEventListener("click", () => {
     searchBox.classList.toggle("active");
@@ -327,7 +328,7 @@ document.addEventListener("click", function(event) {
 
 
         comentario.innerHTML = `
-            <strong>Pedro</strong>
+            <strong>${escaparHTML(nomeUsuario)}</strong>
             <p>${escaparHTML(texto)}</p>
         `;
 
