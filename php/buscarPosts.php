@@ -2,7 +2,7 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once "conexao.php";
+require_once __DIR__ . "/conexao.php";
 
 try {
 
@@ -15,24 +15,39 @@ try {
             p.descricao,
             p.dataPublicacao,
             p.palavrasChave,
-            o.nome AS nomeONG
-        FROM Post p
-        INNER JOIN ONG o ON p.idONG = o.idONG
+            mu.nome AS nomeONG
+        FROM posts p
+        INNER JOIN ONGs o
+            ON p.idONG = o.idONG
+        INNER JOIN MoldeUsuario mu
+            ON o.idMoldeUsuario = mu.idMUsuario
         ORDER BY p.dataPublicacao DESC
     ";
 
-    $stmt = $conexao->prepare($sql);
-    $stmt->execute();
+    $resultado = $conexao->query($sql);
 
-    $posts = $stmt->fetchAll();
+    if (!$resultado) {
+        throw new Exception("Erro ao consultar as publicações.");
+    }
 
-    echo json_encode($posts, JSON_UNESCAPED_UNICODE);
+    $posts = [];
 
-} catch (PDOException $e) {
+    while ($post = $resultado->fetch_assoc()) {
+        $posts[] = $post;
+    }
+
+    echo json_encode(
+        $posts,
+        JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+
+} catch (Throwable $e) {
+
+    error_log("Erro em buscarPosts.php: " . $e->getMessage());
 
     http_response_code(500);
 
     echo json_encode([
         "erro" => "Erro ao buscar os posts."
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 }

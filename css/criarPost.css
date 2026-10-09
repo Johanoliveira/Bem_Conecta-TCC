@@ -1,0 +1,120 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: #f3f7f3;
+    color: #263328;
+}
+
+.post-container {
+    width: min(720px, 92%);
+    margin: 40px auto;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 18px;
+    color: #218c30;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.post-card {
+    padding: 32px;
+    background: #fff;
+    border: 1px solid #e0e9e0;
+    border-radius: 18px;
+    box-shadow: 0 12px 35px rgba(30, 70, 35, 0.08);
+}
+
+.post-card h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.subtitle {
+    margin: 0 0 28px;
+    color: #68746a;
+    line-height: 1.6;
+}
+
+.post-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.post-card label {
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.post-card input,
+.post-card textarea,
+.post-card select {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d5dfd5;
+    border-radius: 9px;
+    font: inherit;
+    background: #fff;
+    color: #263328;
+}
+
+.post-card textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.post-card input:focus,
+.post-card textarea:focus,
+.post-card select:focus {
+    outline: 2px solid #a4dfac;
+    border-color: #1b9e2a;
+}
+
+.publish-btn {
+    margin-top: 22px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #1b9e2a;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.publish-btn:hover {
+    background: #168522;
+    transform: translateY(-1px);
+}
+
+.error-message {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    background: #fff0f0;
+    color: #a32222;
+    border: 1px solid #f1caca;
+}
+
+@media (max-width: 520px) {
+    .post-container {
+        margin: 20px auto;
+    }
+
+    .post-card {
+        padding: 22px 18px;
+    }
+
+    .post-card h1 {
+        font-size: 24px;
+    }
+}

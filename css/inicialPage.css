@@ -491,3 +491,22 @@ body {
         gap: 16px;
     }
 }
+
+.create-post-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px;
+    padding: 12px 24px;
+    background: #1b9e2a;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.create-post-btn:hover {
+    background: #168522;
+    transform: translateY(-2px);
+}

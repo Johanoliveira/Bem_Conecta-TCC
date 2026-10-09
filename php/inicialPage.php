@@ -6,8 +6,102 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 
+require_once __DIR__ . "/../php/conexao.php";
+
 $nome = $_SESSION["usuario_nome"];
 $foto = $_SESSION["usuario_foto"];
+
+
+$nivelDeSeguranca = 1;
+
+$sqlNivel = "
+    SELECT nivelDeSeguranca
+    FROM MoldeUsuario
+    WHERE idMUsuario = ?
+    LIMIT 1
+";
+
+$stmtNivel = $conexao->prepare($sqlNivel);
+
+if ($stmtNivel) {
+    $usuarioId = (int) $_SESSION["usuario_id"];
+
+    $stmtNivel->bind_param("i", $usuarioId);
+    $stmtNivel->execute();
+
+    $resultadoNivel = $stmtNivel->get_result();
+    $usuario = $resultadoNivel->fetch_assoc();
+
+    if ($usuario) {
+        $nivelDeSeguranca = (int) $usuario["nivelDeSeguranca"];
+    }
+
+    $stmtNivel->close();
+}
+
+
+// Indicadores padrão
+$totalDoado = 0;
+$campanhasApoiadas = 0;
+$ongsFavoritas = 0;
+
+// Busca os indicadores do usuário conectado
+$sql = "
+    SELECT
+        COALESCE((
+            SELECT SUM(d.valor)
+            FROM doacoes d
+            INNER JOIN UsuarioComum uc
+                ON uc.idUsuarioComum = d.idUsuarioComum
+            WHERE uc.idMoldeUsuario = ?
+        ), 0) AS totalDoado,
+
+        (
+            SELECT COUNT(DISTINCT d.idCampanha)
+            FROM doacoes d
+            INNER JOIN UsuarioComum uc
+                ON uc.idUsuarioComum = d.idUsuarioComum
+            WHERE uc.idMoldeUsuario = ?
+        ) AS campanhasApoiadas,
+
+        (
+            SELECT COUNT(*)
+            FROM favoritos f
+            INNER JOIN UsuarioComum uc
+                ON uc.idUsuarioComum = f.idUsuarioComum
+            WHERE uc.idMoldeUsuario = ?
+        ) AS ongsFavoritas
+";
+
+$stmt = $conexao->prepare($sql);
+
+if ($stmt) {
+    $usuarioId = (int) $_SESSION["usuario_id"];
+
+    $stmt->bind_param(
+        "iii",
+        $usuarioId,
+        $usuarioId,
+        $usuarioId
+    );
+
+    if ($stmt->execute()) {
+        $resultado = $stmt->get_result();
+        $dados = $resultado->fetch_assoc();
+
+        if ($dados) {
+            $totalDoado = (float) $dados["totalDoado"];
+            $campanhasApoiadas = (int) $dados["campanhasApoiadas"];
+            $ongsFavoritas = (int) $dados["ongsFavoritas"];
+        }
+    } else {
+        error_log("Erro ao consultar indicadores: " . $stmt->error);
+    }
+
+    $stmt->close();
+
+    
+}
 ?>
 
 <!DOCTYPE html>
@@ -67,21 +161,46 @@ $foto = $_SESSION["usuario_foto"];
         <a href="#">⚙ Configurações</a>
     </div>
 
+    <!-- SEU IMPACTO -->
     <div class="sidebar-card">
         <h3>Seu Impacto</h3>
-        <p><strong>R$ 320,00</strong> doados</p>
-        <p><strong>8</strong> campanhas apoiadas</p>
-        <p><strong>3</strong> ONGs favoritas</p>
+
+        <p>
+            <strong>R$ <?php echo number_format($totalDoado, 2, ',', '.'); ?></strong>
+            doados
+        </p>
+
+        <p>
+            <strong><?php echo $campanhasApoiadas; ?></strong>
+            campanhas apoiadas
+        </p>
+
+        <p>
+            <strong><?php echo $ongsFavoritas; ?></strong>
+            ONGs favoritas
+        </p>
     </div>
     </aside>
 
     <!-- FEED -->
     <main class="feed">
 
-    <section class="welcome-card">
-        <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
-        <p>Veja as campanhas mais recentes e continue apoiando projetos sociais que transformam vidas.</p>
-    </section>
+    
+<section class="welcome-card">
+    <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
+
+    <p>
+        Veja as campanhas mais recentes e continue apoiando
+        projetos sociais que transformam vidas.
+    </p>
+
+    <?php if ($nivelDeSeguranca !== 1): ?>
+        <a href="criarPost.php" class="create-post-btn">
+            + Criar post
+        </a>
+    <?php endif; ?>
+</section>
+
 
     <section class="posts" aria-label="Publicações">
         <div id="posts-container"></div>
