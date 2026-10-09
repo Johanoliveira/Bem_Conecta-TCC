@@ -375,6 +375,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar publicação - Bem Conecta</title>
     <link rel="stylesheet" href="../css/criarPost.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+    >
 </head>
 
 <body>
@@ -422,19 +426,59 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 placeholder="Ex.: Ajude nossa campanha de materiais escolares"
             >
 
-            <label for="imagem">Imagem da publicação</label>
+        
+        <label>Imagem da publicação</label>
 
-            <input
-                type="file"
-                id="imagem"
-                name="imagem"
-                accept="image/jpeg,image/png,image/webp"
-                required
-            >
+        <input
+            type="file"
+            id="imagem"
+            name="imagem"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+        >
 
-            <small>
-                JPG, PNG ou WEBP. Tamanho máximo: 5 MB.
-            </small>
+        <!-- Tela inicial: enviar imagem -->
+        <div id="upload-inicial" class="upload-inicial">
+            <button type="button" id="botao-enviar-imagem" class="upload-dropzone">
+                <span class="upload-icone">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>
+                    </svg>
+                </span>
+
+                <strong>Escolher uma imagem</strong>
+                <span>Clique para selecionar no seu computador</span>
+                <small>JPG, PNG ou WEBP · Máximo de 5 MB</small>
+            </button>
+        </div>
+
+        
+
+        <!-- Tela após confirmar: somente a imagem pronta e dois botões -->
+        <div id="imagem-pronta" class="imagem-pronta" hidden>
+            <div class="imagem-pronta-quadro">
+                <img id="preview-pronto" alt="Imagem pronta para publicação">
+                <span class="selo-pronto">Imagem pronta</span>
+            </div>
+
+            <div class="acoes-imagem-pronta">
+                <button type="button" id="mudar-imagem" class="botao-secundario">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2M16 14l5-5M17 9h4v4M7 15l3-3 3 3"/>
+                    </svg>
+                    Mudar imagem
+                </button>
+
+                <button type="button" id="editar-imagem" class="botao-confirmar">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m15 5 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16z"/>
+                    </svg>
+                    Editar imagem
+                </button>
+            </div>
+        </div>
+
+
 
             <label for="descricao">Descrição da publicação</label>
 
@@ -495,5 +539,53 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </form>
     </section>
 </main>
+<!-- Tela de edição -->
+    <div id="editor-imagem" class="modal-editor-imagem" hidden>
+        <div class="fundo-modal" id="fundo-modal"></div>
+
+        <section
+            class="editor-imagem"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-editor"
+        >
+            <div class="editor-cabecalho">
+                <div>
+                    <strong id="titulo-editor">Ajuste sua imagem</strong>
+                    <span>Arraste para reposicionar e use o zoom para aproximar ou afastar.</span>
+                </div>
+
+                <button
+                    type="button"
+                    id="fechar-editor"
+                    class="fechar-editor"
+                    aria-label="Fechar editor"
+                >×</button>
+            </div>
+
+            <div class="area-recorte">
+                <img id="imagem-recorte" alt="Ajuste o enquadramento da imagem">
+            </div>
+
+            <div class="controles-recorte">
+                <button type="button" id="zoom-menos" class="controle-zoom" aria-label="Diminuir zoom">−</button>
+                <input type="range" id="controle-zoom" min="0" max="100" value="0" step="1" aria-label="Zoom da imagem">
+                <button type="button" id="zoom-mais" class="controle-zoom" aria-label="Aumentar zoom">+</button>
+            </div>
+
+            <div class="acoes-editor">
+                <button type="button" id="cancelar-recorte" class="botao-secundario">
+                    Cancelar
+                </button>
+
+                <button type="button" id="confirmar-recorte" class="botao-confirmar">
+                    Confirmar imagem
+                </button>
+            </div>
+        </section>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script src="../js/criarPost.js"></script>
 </body>
 </html>
