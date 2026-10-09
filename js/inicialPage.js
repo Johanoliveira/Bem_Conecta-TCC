@@ -34,19 +34,14 @@ const postsTeste = [
 // CARREGA POSTS
 
 async function carregarPosts() {
-
     const container = document.getElementById("posts-container");
 
     try {
-
         let posts;
 
         if (modoTeste) {
-
             posts = postsTeste;
-
         } else {
-
             const resposta = await fetch("../php/buscarPosts.php");
 
             if (!resposta.ok) {
@@ -58,50 +53,39 @@ async function carregarPosts() {
 
         container.innerHTML = "";
 
-        if (posts.length === 0) {
-
+        if (!Array.isArray(posts) || posts.length === 0) {
             container.innerHTML = `
                 <div class="sem-posts">
                     <h3>Nenhuma publicação encontrada.</h3>
                     <p>As ONGs ainda não publicaram nenhum conteúdo.</p>
                 </div>
             `;
-
             return;
         }
 
-        posts.forEach(post => {
-            criarPost(post, container);
-        });
+        posts.forEach(post => criarPost(post, container));
+
+        // Carrega curtidas e comentários reais.
+        if (!modoTeste) {
+            await Promise.all(
+                posts.map(post => carregarInteracoes(post.idPost))
+            );
+        }
 
     } catch (erro) {
-
         console.error(erro);
 
         container.innerHTML = `
             <div class="erro-posts">
-
-                <div class="erro-icon">
-                    !
-                </div>
-
+                <div class="erro-icon">!</div>
                 <h3>Não foi possível carregar as publicações.</h3>
-
-                <p>
-                    Parece que estamos com problemas de conexão.
-                    <br>
-                    Tente novamente mais tarde.
-                </p>
-
-                <button class="retry-posts-btn">
-                    ↻ Tentar novamente
-                </button>
-
+                <p>Parece que estamos com problemas de conexão.
+                    Tente novamente mais tarde.</p>
+                <button class="retry-posts-btn">↻ Tentar novamente</button>
             </div>
         `;
     }
 }
-
 
 // CRIA POST
 
@@ -201,6 +185,157 @@ function criarPost(post, container) {
     container.appendChild(article);
 }
 
+// CARREGA CURTIDAS E COMENTÁRIOS DO BANCO
+
+async function carregarInteracoes(idPost) {
+    try {
+        const resposta = await fetch(
+            `../php/buscarInteracoes.php?idPost=${encodeURIComponent(idPost)}`
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Erro ao carregar interações.");
+        }
+
+        const artigo = document.querySelector(
+            `.post-card [data-post-id="${idPost}"]`
+        )?.closest(".post-card");
+
+        if (!artigo) return;
+
+        const botaoCurtir = artigo.querySelector(".like-btn");
+        const contador = botaoCurtir.querySelector(".like-count");
+
+        contador.textContent = dados.totalCurtidas;
+        botaoCurtir.classList.toggle("liked", dados.curtido);
+        botaoCurtir.firstChild.textContent = dados.curtido
+            ? "Curtido "
+            : "Curtir ";
+
+        const lista = artigo.querySelector(".comments-list");
+        lista.innerHTML = "";
+
+        dados.comentarios.forEach(comentario => {
+            adicionarComentarioNaTela(lista, comentario);
+        });
+
+    } catch (erro) {
+        console.error("Erro ao carregar interações:", erro);
+    }
+}
+
+
+// ENVIA CURTIDA AO PHP
+
+async function alternarCurtida(botao) {
+    if (botao.dataset.processando === "true") return;
+
+    botao.dataset.processando = "true";
+    botao.disabled = true;
+
+    try {
+        const resposta = await fetch("../php/curtirPost.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                idPost: Number(botao.dataset.postId)
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Não foi possível curtir.");
+        }
+
+        botao.classList.toggle("liked", dados.curtido);
+        botao.querySelector(".like-count").textContent =
+            dados.totalCurtidas;
+
+        botao.firstChild.textContent = dados.curtido
+            ? "Curtido "
+            : "Curtir ";
+
+    } catch (erro) {
+        alert(erro.message);
+    } finally {
+        botao.disabled = false;
+        delete botao.dataset.processando;
+    }
+}
+
+
+// ADICIONA UM COMENTÁRIO COM SEGURANÇA
+
+function adicionarComentarioNaTela(lista, comentario) {
+    const elemento = document.createElement("div");
+    elemento.classList.add("comment");
+
+    const nome = document.createElement("strong");
+    nome.textContent = comentario.nomeUsuario;
+
+    const texto = document.createElement("p");
+    texto.textContent = comentario.conteudo;
+
+    elemento.append(nome, texto);
+    lista.appendChild(elemento);
+}
+
+
+// ENVIA COMENTÁRIO AO PHP
+
+async function enviarComentario(botao) {
+    const section = botao.closest(".comments-section");
+    const input = section.querySelector(".comment-input");
+    const lista = section.querySelector(".comments-list");
+    const texto = input.value.trim();
+
+    const idPost = Number(
+        section.id.replace("comments-", "")
+    );
+
+    if (!texto) return;
+
+    if (texto.length > 500) {
+        alert("O comentário deve ter no máximo 500 caracteres.");
+        return;
+    }
+
+    if (botao.disabled) return;
+
+    botao.disabled = true;
+
+    try {
+        const resposta = await fetch("../php/comentarPost.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                idPost: idPost,
+                conteudo: texto
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Não foi possível comentar.");
+        }
+
+        adicionarComentarioNaTela(lista, dados.comentario);
+        input.value = "";
+
+    } catch (erro) {
+        alert(erro.message);
+    } finally {
+        botao.disabled = false;
+    }
+}
 
 // FORMATA DATA
 
@@ -246,95 +381,35 @@ document.addEventListener("click", function(event) {
     const likeButton = event.target.closest(".like-btn");
 
     if (likeButton) {
-
-        const countElement =
-            likeButton.querySelector(".like-count");
-
-        let curtidas =
-            Number(countElement.textContent);
+        alternarCurtida(likeButton);
+    }
 
 
-        if (likeButton.classList.contains("liked")) {
+        // ABRIR COMENTÁRIOS
 
-            curtidas--;
+        const commentButton =
+            event.target.closest(".comment-btn");
 
-            likeButton.classList.remove("liked");
+        if (commentButton) {
 
-            likeButton.firstChild.textContent = "Curtir ";
+            const postId =
+                commentButton.dataset.postId;
 
-        } else {
+            const commentsSection =
+                document.getElementById(
+                    `comments-${postId}`
+                );
 
-            curtidas++;
-
-            likeButton.classList.add("liked");
-
-            likeButton.firstChild.textContent = "Curtido ";
-
+            commentsSection.classList.toggle("active");
         }
-
-        countElement.textContent = curtidas;
-    }
-
-
-    // ABRIR COMENTÁRIOS
-
-    const commentButton =
-        event.target.closest(".comment-btn");
-
-    if (commentButton) {
-
-        const postId =
-            commentButton.dataset.postId;
-
-        const commentsSection =
-            document.getElementById(
-                `comments-${postId}`
-            );
-
-        commentsSection.classList.toggle("active");
-    }
 
 
     // ENVIAR COMENTÁRIO
 
-    const sendButton =
-        event.target.closest(".send-comment");
+    const sendButton = event.target.closest(".send-comment");
 
     if (sendButton) {
-
-        const section =
-            sendButton.closest(".comments-section");
-
-        const input =
-            section.querySelector(".comment-input");
-
-        const list =
-            section.querySelector(".comments-list");
-
-        const texto =
-            input.value.trim();
-
-
-        if (texto === "") {
-            return;
-        }
-
-
-        const comentario =
-            document.createElement("div");
-
-        comentario.classList.add("comment");
-
-
-        comentario.innerHTML = `
-            <strong>Pedro</strong>
-            <p>${escaparHTML(texto)}</p>
-        `;
-
-
-        list.appendChild(comentario);
-
-        input.value = "";
+        enviarComentario(sendButton);
     }
 
 
