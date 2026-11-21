@@ -13,11 +13,16 @@ $foto = $_SESSION["usuario_foto"];
 
 
 $nivelDeSeguranca = 1;
+$idOngLogada = 0;
 
 $sqlNivel = "
-    SELECT nivelDeSeguranca
-    FROM MoldeUsuario
-    WHERE idMUsuario = ?
+    SELECT
+        mu.nivelDeSeguranca,
+        o.idONG
+    FROM MoldeUsuario mu
+    LEFT JOIN ONGs o
+        ON o.idMoldeUsuario = mu.idMUsuario
+    WHERE mu.idMUsuario = ?
     LIMIT 1
 ";
 
@@ -34,6 +39,7 @@ if ($stmtNivel) {
 
     if ($usuario) {
         $nivelDeSeguranca = (int) $usuario["nivelDeSeguranca"];
+        $idOngLogada = $usuario["idONG"] !== null ? (int) $usuario["idONG"] : 0;
     }
 
     $stmtNivel->close();
@@ -113,7 +119,11 @@ if ($stmt) {
     <link rel="stylesheet" href="../css/inicialPage.css">
 </head>
 
-<body data-usuario-nome="<?php echo htmlspecialchars($nome, ENT_QUOTES, 'UTF-8'); ?>">
+<body
+    data-usuario-nome="<?php echo htmlspecialchars($nome, ENT_QUOTES, 'UTF-8'); ?>"
+    data-nivel-seguranca="<?php echo (int) $nivelDeSeguranca; ?>"
+    data-id-ong="<?php echo (int) $idOngLogada; ?>">
+
 <!-- TOPO -->
 <header class="topbar">
     <div class="logos">
@@ -127,7 +137,7 @@ if ($stmt) {
 
     <nav class="menu">
     <a href="#">Projetos</a>
-    <a href="#">ONGs</a>
+    <a href="ongs.php">ONGs</a>
     <a href="#">Doações</a>
     </nav>
 
