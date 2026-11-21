@@ -141,6 +141,7 @@ if (!$stmtAtividades) {
 
 $stmtAtividades->bind_param(
     "ii",
+    "ii",
     $idUsuario,
     $idUsuario
 );
@@ -159,7 +160,11 @@ $stmtAtividades->close();
 $nome = $usuario["nome"] ?: "-";
 $email = $usuario["email"] ?: "-";
 $telefone = $usuario["telefone"] ?: "-";
-$foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
+$foto = $usuario["fotoPerfil"];
+
+if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], true)) {
+    $foto = "img/jpg/ftPerfil.jpg";
+}
 
 ?>
 <!DOCTYPE html>

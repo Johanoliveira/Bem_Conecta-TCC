@@ -150,6 +150,7 @@ CREATE TABLE posts (
     titulo VARCHAR(70) NOT NULL,
     conteudo TEXT NOT NULL,
     dataPublicacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    descricao  TEXT NOT NULL,
     palavrasChave VARCHAR(255),
 
     FOREIGN KEY (idONG)

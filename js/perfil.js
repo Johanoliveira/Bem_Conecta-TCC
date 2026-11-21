@@ -41,8 +41,14 @@ async function carregarPerfil() {
         // FOTO
         // =========================
 
-        document.getElementById("fotoUsuario").src =
-            "../img/perfil/" + dados.foto;
+        const fotoUsuario = document.getElementById("fotoUsuario");
+        const caminhoFoto = dados.foto || "img/jpg/ftPerfil.jpg";
+
+        fotoUsuario.src = "../" + caminhoFoto;
+        fotoUsuario.onerror = function () {
+            this.onerror = null;
+            this.src = "../img/jpg/ftPerfil.jpg";
+        };
 
 
         // =========================
