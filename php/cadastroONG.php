@@ -2,6 +2,7 @@
 
 session_start();
 
+require_once 'paginaErro.php';
 require_once "conexao.php";
 
 // Recebe os dados do formulário
@@ -21,12 +22,12 @@ if (
     empty($senha) ||
     empty($confirmarSenha)
 ) {
-    die("Preencha todos os campos.");
+    exibirErro("Preencha todos os campos.");
 }
 
 // Verifica se as senhas são iguais
 if ($senha !== $confirmarSenha) {
-    die("As senhas não coincidem.");
+    exibirErro("As senhas não coincidem.");
 }
 
 // Remove caracteres do CNPJ
@@ -53,7 +54,7 @@ VALUES (?, ?, ?, ?, ?, 2)";
 $stmtUsuario = $conexao->prepare($sqlUsuario);
 
 if (!$stmtUsuario) {
-    die("Erro ao preparar cadastro do usuário: " . $conexao->error);
+    exibirErro("Erro ao preparar cadastro do usuário: " . $conexao->error);
 }
 
 $stmtUsuario->bind_param(
@@ -66,7 +67,7 @@ $stmtUsuario->bind_param(
 );
 
 if (!$stmtUsuario->execute()) {
-    die("Erro ao cadastrar usuário: " . $stmtUsuario->error);
+    exibirErro("Erro ao cadastrar usuário: " . $stmtUsuario->error);
 }
 
 // Pega o ID do usuário criado
@@ -86,7 +87,7 @@ VALUES (?, ?)";
 $stmtONG = $conexao->prepare($sqlONG);
 
 if (!$stmtONG) {
-    die("Erro ao preparar cadastro da ONG: " . $conexao->error);
+    exibirErro("Erro ao preparar cadastro da ONG: " . $conexao->error);
 }
 
 $stmtONG->bind_param(
@@ -107,7 +108,7 @@ if (!$stmtONG->execute()) {
     $stmtDelete->execute();
     $stmtDelete->close();
 
-    die("Erro ao cadastrar ONG: " . $stmtONG->error);
+    exibirErro("Erro ao cadastrar ONG: " . $stmtONG->error);
 }
 
 $stmtONG->close();
@@ -124,7 +125,10 @@ $conexao->close();
 // REDIRECIONA
 // =====================================
 
-header("Location: ../php/inicialPage.php");
+$mensagem = "Não foi possível concluir o cadastro. Verifique o CNPJ ou e-mail informado.";
+$linkVoltar = "../html/cadastroONG.html";
+$textoBotao = "Voltar para o Cadastro da ONG";
+include 'paginaErro.php';
 exit;
 
 ?>

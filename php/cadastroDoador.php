@@ -2,14 +2,15 @@
 
 session_start();
 
+require_once 'paginaErro.php';
 require_once __DIR__ . "/conexao.php";
 
 if (!isset($conexao)) {
-    die("Erro: conexão com o banco de dados não foi configurada.");
+    exibirErro("Erro: conexão com o banco de dados não foi configurada.");
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    die("Acesso inválido.");
+    exibirErro("Acesso inválido.");
 }
 
 
@@ -33,21 +34,21 @@ if (
     empty($senha) ||
     empty($confirmarSenha)
 ) {
-    die("Preencha todos os campos.");
+    exibirErro("Preencha todos os campos.");
 }
 
 
 // Verifica as senhas
 
 if ($senha !== $confirmarSenha) {
-    die("As senhas não coincidem.");
+    exibirErro("As senhas não coincidem.");
 }
 
 
 // Verifica os termos
 
 if (!isset($_POST["termos"])) {
-    die("Você precisa aceitar os Termos de Uso.");
+    exibirErro("Você precisa aceitar os Termos de Uso.");
 }
 
 
@@ -60,7 +61,7 @@ $sql = "SELECT idMUsuario
 $stmt = $conexao->prepare($sql);
 
 if (!$stmt) {
-    die("Erro ao preparar consulta: " . $conexao->error);
+    exibirErro("Erro ao preparar consulta: " . $conexao->error);
 }
 
 $stmt->bind_param("s", $email);
@@ -69,7 +70,7 @@ $stmt->execute();
 $resultado = $stmt->get_result();
 
 if ($resultado->num_rows > 0) {
-    die("Este e-mail já está cadastrado.");
+    exibirErro("Este e-mail já está cadastrado.");
 }
 
 $stmt->close();
@@ -165,12 +166,15 @@ try {
 
     $conexao->rollback();
 
-    die("Erro ao cadastrar: " . $e->getMessage());
+    exibirErro("Erro ao cadastrar: " . $e->getMessage());
 }
 
 
 $conexao->close();
 
-header("Location: ../php/inicialPage.php");
+$mensagem = "Este e-mail ou CPF já está cadastrado no sistema.";
+$linkVoltar = "../html/cadastroDoador.html";
+$textoBotao = "Voltar para o Cadastro de Doador";
+include 'paginaErro.php';
 exit;
 ?>

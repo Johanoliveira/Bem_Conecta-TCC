@@ -2,11 +2,12 @@
 
 session_start();
 
+require_once 'paginaErro.php';
 require_once "conexao.php";
 
 // Verifica se os dados foram enviados
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    die("Acesso inválido.");
+    exibirErro("Acesso inválido.");
 }
 
 // Recebe os dados do formulário
@@ -15,7 +16,7 @@ $senha = $_POST["senha"] ?? "";
 
 // Verifica se os campos foram preenchidos
 if (empty($login) || empty($senha)) {
-    die("Preencha todos os campos.");
+    exibirErro("Preencha todos os campos.");
 }
 
 
@@ -30,7 +31,7 @@ $sql = "SELECT idMUsuario, nome, email, senha, fotoPerfil
 $stmt = $conexao->prepare($sql);
 
 if (!$stmt) {
-    die("Erro ao preparar consulta: " . $conexao->error);
+    exibirErro("Erro ao preparar consulta: " . $conexao->error);
 }
 
 $stmt->bind_param("s", $login);
@@ -48,7 +49,7 @@ $stmt->close();
 // =====================================
 
 if (!$usuario) {
-    die("E-mail ou senha incorretos.");
+    exibirErro("E-mail ou senha incorretos.");
 }
 
 
@@ -57,7 +58,7 @@ if (!$usuario) {
 // =====================================
 
 if (!password_verify($senha, $usuario["senha"])) {
-    die("E-mail ou senha incorretos.");
+    exibirErro("E-mail ou senha incorretos.");
 }
 
 
@@ -75,7 +76,11 @@ $_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
 // REDIRECIONA
 // =====================================
 
-header("Location: ../php/inicialPage.php");
+// Exemplo quando o usuário errar login ou senha:
+$mensagem = "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
+$linkVoltar = "../html/login.html";
+$textoBotao = "Voltar para o Login";
+include 'paginaErro.php';
 exit;
 
 ?>
