@@ -18,6 +18,9 @@
         <!-- O formulário envia os dados para o arquivo processar.php -->
         <form action="../php/pagamento.php" method="POST">
 
+            <input type="hidden" name="idPost" id="inputIdPost" value="">
+            <input type="hidden" name="idCampanha" id="inputIdCampanha" value="">
+
             <label class="titulo-secao">Escolha o valor da doação:</label>
 
             <!-- Botões de valor fixo (radio buttons estilizados como cartões) -->
@@ -133,6 +136,12 @@
         </form>
 
     </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('inputIdPost').value = params.get('idPost') || '';
+        document.getElementById('inputIdCampanha').value = params.get('idCampanha') || '';
+    </script>
 
 </body>
 </html>
