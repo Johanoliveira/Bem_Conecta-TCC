@@ -410,40 +410,7 @@ document.addEventListener("click", function(event) {
     const sendButton = event.target.closest(".send-comment");
 
     if (sendButton) {
-
-        const section =
-            sendButton.closest(".comments-section");
-
-        const input =
-            section.querySelector(".comment-input");
-
-        const list =
-            section.querySelector(".comments-list");
-
-        const texto =
-            input.value.trim();
-
-
-        if (texto === "") {
-            return;
-        }
-
-
-        const comentario =
-            document.createElement("div");
-
-        comentario.classList.add("comment");
-
-
-        comentario.innerHTML = `
-            <strong>${escaparHTML(nomeUsuario)}</strong>
-            <p>${escaparHTML(texto)}</p>
-        `;
-
-
-        list.appendChild(comentario);
-
-        input.value = "";
+        enviarComentario(sendButton);
     }
 
 

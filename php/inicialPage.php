@@ -240,6 +240,6 @@ if ($stmt) {
     </aside>
 
 </div>
-<script src="../js/inicialPage.js?v=2"></script>
+<script src="../js/inicialPage.js?v=4"></script>
 </body>
 </html>

@@ -139,11 +139,13 @@ if (!$stmtAtividades) {
     die("Erro ao preparar atividades recentes: " . $conexao->error);
 }
 
+$idParam1 = (int) $idUsuario;
+$idParam2 = (int) $idUsuario;
+
 $stmtAtividades->bind_param(
     "ii",
-    "ii",
-    $idUsuario,
-    $idUsuario
+    $idParam1,
+    $idParam2
 );
 
 $stmtAtividades->execute();
