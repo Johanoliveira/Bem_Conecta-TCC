@@ -135,10 +135,11 @@ if ($stmt) {
         </div>
     </div>
 
+    <!-- Menu Superior -->
     <nav class="menu">
-    <a href="#">Projetos</a>
-    <a href="ongs.php">ONGs</a>
-    <a href="#">Doações</a>
+        <a href="campanhas.php">Projetos</a>
+        <a href="ongs.php">ONGs</a>
+        <a href="minhasDoacoes.php">Doações</a>
     </nav>
 
     <div class="top-actions">
@@ -163,12 +164,12 @@ if ($stmt) {
     <div class="sidebar-card">
         <h3>Menu</h3>
 
-        <a href="#">🏠 Página Inicial</a>
-        <a href="#">❤️ Minhas Doações</a>
-        <a href="#">📌 ONGs Favoritas</a>
-        <a href="#">📄 Campanhas</a>
-        <a href="#">👤 Meu Perfil</a>
-        <a href="#">⚙ Configurações</a>
+        <a href="inicialPage.php">🏠 Página Inicial</a>
+        <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
+        <a href="ongs.php">📌 ONGs Favoritas</a>
+        <a href="campanhas.php">📄 Campanhas</a>
+        <a href="perfil.php">👤 Meu Perfil</a>
+        <a href="perfil.php">⚙ Configurações</a>
     </div>
 
     <!-- SEU IMPACTO -->

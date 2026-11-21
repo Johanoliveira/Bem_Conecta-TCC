@@ -197,12 +197,12 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
             </div>
         </div>
 
-        <nav class="menu-superior">
-            <a href="../php/inicialPage.php">Início</a>
-            <a href="#">Projetos</a>
-            <a href="#">ONGs</a>
-            <a href="#">Doações</a>
-        </nav>
+        <!-- Menu Superior -->
+    <nav class="menu-superior">
+        <a href="campanhas.php">Projetos</a>
+        <a href="ongs.php">ONGs</a>
+        <a href="minhasDoacoes.php">Doações</a>
+    </nav>
 
         <div class="usuario-topo">
             <button class="botao-pesquisa">
@@ -220,37 +220,14 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
             <div class="menu-lateral">
 
-                <h2>Menu</h2>
+                <h3>Menu</h3>
 
-                <a href="../php/inicialPage.php">
-                    <span>🏠</span>
-                    Página Inicial
-                </a>
-
-                <a href="#">
-                    <span>💗</span>
-                    Minhas Doações
-                </a>
-
-                <a href="#">
-                    <span>📌</span>
-                    ONGs Favoritas
-                </a>
-
-                <a href="#">
-                    <span>📄</span>
-                    Campanhas
-                </a>
-
-                <a href="#" class="ativo">
-                    <span>👤</span>
-                    Meu Perfil
-                </a>
-
-                <a href="#">
-                    <span>⚙️</span>
-                    Configurações
-                </a>
+                <a href="inicialPage.php">🏠 Página Inicial</a>
+                <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
+                <a href="ongs.php">📌 ONGs Favoritas</a>
+                <a href="campanhas.php">📄 Campanhas</a>
+                <a href="perfil.php">👤 Meu Perfil</a>
+                <a href="perfil.php">⚙ Configurações</a>
 
             </div>
 
