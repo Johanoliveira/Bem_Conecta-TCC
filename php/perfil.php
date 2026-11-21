@@ -6,12 +6,61 @@ require_once "conexao.php";
 
 // Verifica se existe usuário logado
 if (!isset($_SESSION["usuario_id"])) {
-    header("Location: login.html");
+    header("Location: ../html/login.html");
     exit;
 }
 
-$idUsuario = $_SESSION["usuario_id"];
+$idUsuario = (int) $_SESSION["usuario_id"];
 
+// =====================================
+// SALVAR EDIÇÃO DO PERFIL NO BANCO
+// =====================================
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["acao"]) && $_POST["acao"] === "editar_perfil") {
+    header("Content-Type: application/json; charset=utf-8");
+
+    $novoNome = trim($_POST["nome"] ?? "");
+    $novoTelefone = trim($_POST["telefone"] ?? "");
+
+    if ($novoNome === "") {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Erro ao salvar: o campo Nome completo não pode ficar vazio."
+        ]);
+        exit;
+    }
+
+    try {
+        $sqlUpdate = "UPDATE MoldeUsuario SET nome = ?, telefone = ? WHERE idMUsuario = ?";
+        $stmtUpdate = $conexao->prepare($sqlUpdate);
+
+        if (!$stmtUpdate) {
+            throw new Exception($conexao->error);
+        }
+
+        $stmtUpdate->bind_param("ssi", $novoNome, $novoTelefone, $idUsuario);
+
+        if (!$stmtUpdate->execute()) {
+            throw new Exception($stmtUpdate->error);
+        }
+
+        $stmtUpdate->close();
+
+        if (isset($_SESSION["nome"])) {
+            $_SESSION["nome"] = $novoNome;
+        }
+
+        echo json_encode([
+            "sucesso" => true,
+            "mensagem" => "Dados atualizados com sucesso!"
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Erro ao salvar no banco de dados: " . $e->getMessage()
+        ]);
+    }
+    exit;
+}
 
 // Busca os dados do usuário
 $sql = "SELECT idMUsuario, nome, email, telefone, fotoPerfil, nivelDeSeguranca
@@ -28,17 +77,21 @@ $stmt->bind_param("i", $idUsuario);
 $stmt->execute();
 
 $resultado = $stmt->get_result();
-
 $usuario = $resultado->fetch_assoc();
-
 $stmt->close();
+
+// Verifica se o usuário existe
+if (!$usuario) {
+    session_destroy();
+    header("Location: ../html/login.html");
+    exit;
+}
 
 $nivel = (int) ($usuario["nivelDeSeguranca"] ?? 1);
 
 // =====================================
 // ATIVIDADES RECENTES
 // =====================================
-
 $sqlAtividades = "
     SELECT *
     FROM (
@@ -74,7 +127,8 @@ $sqlAtividades = "
         INNER JOIN UsuarioComum uc
             ON f.idUsuarioComum = uc.idUsuarioComum
         WHERE uc.idMoldeUsuario = ?
-    ) atividades
+    ) AS atividades_recentes
+
     ORDER BY dataAtividade DESC
     LIMIT 10
 ";
@@ -85,32 +139,24 @@ if (!$stmtAtividades) {
     die("Erro ao preparar atividades recentes: " . $conexao->error);
 }
 
+$idParam1 = (int) $idUsuario;
+$idParam2 = (int) $idUsuario;
+
 $stmtAtividades->bind_param(
     "ii",
-    $idUsuario,
-    $idUsuario
+    $idParam1,
+    $idParam2
 );
 
 $stmtAtividades->execute();
-
 $resultadoAtividades = $stmtAtividades->get_result();
 
 $atividadesRecentes = [];
-
 while ($atividade = $resultadoAtividades->fetch_assoc()) {
     $atividadesRecentes[] = $atividade;
 }
 
 $stmtAtividades->close();
-
-// Verifica se o usuário existe
-if (!$usuario) {
-    session_destroy();
-
-    header("Location: login.html");
-    exit;
-}
-
 
 // Dados
 $nome = $usuario["nome"] ?: "-";
@@ -123,7 +169,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -132,7 +177,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Bem Conecta</title>
 
-    <link rel="stylesheet" href="../css/perfil.css">
+    <link rel="stylesheet" href="../css/perfil.css?v=2">
 
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -152,17 +197,14 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
             </div>
         </div>
 
-
-        <nav class="menu-superior">
-            <a href="inicialPage.php">Início</a>
-            <a href="#">Projetos</a>
-            <a href="#">ONGs</a>
-            <a href="#">Doações</a>
-        </nav>
-
+        <!-- Menu Superior -->
+    <nav class="menu-superior">
+        <a href="campanhas.php">Projetos</a>
+        <a href="ongs.php">ONGs</a>
+        <a href="minhasDoacoes.php">Doações</a>
+    </nav>
 
         <div class="usuario-topo">
-
             <button class="botao-pesquisa">
                 🔍
             </button>
@@ -170,47 +212,22 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
     </header>
 
-
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="pagina">
-
 
         <!-- MENU LATERAL -->
         <aside class="sidebar">
 
             <div class="menu-lateral">
 
-                <h2>Menu</h2>
+                <h3>Menu</h3>
 
-                <a href="inicialPage.php">
-                    <span>🏠</span>
-                    Página Inicial
-                </a>
-
-                <a href="#">
-                    <span>💗</span>
-                    Minhas Doações
-                </a>
-
-                <a href="#">
-                    <span>📌</span>
-                    ONGs Favoritas
-                </a>
-
-                <a href="#">
-                    <span>📄</span>
-                    Campanhas
-                </a>
-
-                <a href="#" class="ativo">
-                    <span>👤</span>
-                    Meu Perfil
-                </a>
-
-                <a href="#">
-                    <span>⚙️</span>
-                    Configurações
-                </a>
+                <a href="inicialPage.php">🏠 Página Inicial</a>
+                <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
+                <a href="ongs.php">📌 ONGs Favoritas</a>
+                <a href="campanhas.php">📄 Campanhas</a>
+                <a href="perfil.php">👤 Meu Perfil</a>
+                <a href="perfil.php">⚙ Configurações</a>
 
             </div>
 
@@ -225,10 +242,8 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
         </aside>
 
-
         <!-- ÁREA DO PERFIL -->
         <section class="conteudo-perfil">
-
 
             <!-- TÍTULO -->
             <div class="titulo-pagina">
@@ -236,10 +251,8 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                 <p>Gerencie suas informações e acompanhe seu impacto.</p>
             </div>
 
-
             <!-- CARD PRINCIPAL -->
             <div class="card-perfil">
-
 
                 <div class="perfil-cabecalho">
 
@@ -254,7 +267,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                             ✎
                         </button>
                     </div>
-
 
                     <div class="informacoes-principais">
 
@@ -275,17 +287,19 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
                     </div>
 
-
-                    <button class="botao-editar">
-                        <i class="fa-solid fa-pen"></i>
-                        Editar Perfil
-                    </button>
+                    <div class="acoes-perfil">
+                        <button type="button" class="botao-editar" id="btnEditarPerfil">
+                            <i class="fa-solid fa-pen"></i>
+                            Editar Perfil
+                        </button>
+                        <button type="button" class="botao-cancelar" id="btnCancelarEdicao" style="display: none;">
+                            Cancelar
+                        </button>
+                    </div>
 
                 </div>
 
-
                 <hr>
-
 
                 <!-- INFORMAÇÕES PESSOAIS -->
                 <div class="secao">
@@ -294,29 +308,45 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
                     <div class="grid-informacoes">
 
-                        <div class="campo">
+                        <div class="campo" id="campoNome">
                             <span>Nome completo</span>
                             <p id="nomeCompleto">
-                            <?php echo htmlspecialchars($nome); ?>
+                                <?php echo htmlspecialchars($nome); ?>
+                            </p>
+                            <input
+                                type="text"
+                                id="inputNome"
+                                class="input-edicao"
+                                style="display: none;"
+                                value="<?php echo htmlspecialchars($nome === '-' ? '' : $nome); ?>"
+                                placeholder="Digite seu nome completo"
+                            >
+                        </div>
+
+                        <div class="campo" id="campoEmail">
+                            <span>E-mail <small class="aviso-bloqueado" id="avisoEmail" style="display: none;">(não editável)</small></span>
+                            <p class="email">
+                                <i class="fa-solid fa-envelope"></i>
+                                <?php echo htmlspecialchars($email); ?>
                             </p>
                         </div>
 
-                        <div class="campo">
-                            <span>E-mail</span>
-                            <p class="email" id="emailUsuario">
-                            <i class="fa-solid fa-envelope"></i>
-                            <?php echo htmlspecialchars($email); ?>
-                        </p>
-                        </div>
-
-                        <div class="campo">
+                        <div class="campo" id="campoTelefone">
                             <span>Telefone</span>
                             <p id="telefoneUsuario">
                                 <?php echo htmlspecialchars($telefone); ?>
                             </p>
+                            <input
+                                type="text"
+                                id="inputTelefone"
+                                class="input-edicao"
+                                style="display: none;"
+                                value="<?php echo htmlspecialchars($telefone === '-' ? '' : $telefone); ?>"
+                                placeholder="(00) 00000-0000"
+                            >
                         </div>
 
-                        <div class="campo">
+                        <div class="campo" id="campoLocalizacao">
                             <span>Localização</span>
                             <p>São Paulo, SP</p>
                         </div>
@@ -325,17 +355,15 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
                 </div>
 
-
                 <!-- INTERESSES -->
                 <div class="secao interesses">
                     <h2>Causas que você apoia</h2>
                     <div class="tags" id="listaCausas">
-                    <span>-</span>
-                </div>
+                        <span>-</span>
+                    </div>
                 </div>
 
             </div>
-
 
             <!-- ESTATÍSTICAS -->
             <div class="estatisticas">
@@ -351,7 +379,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                     </div>
                 </div>
 
-
                 <div class="card-estatistica">
                     <div class="icone">
                         <i class="fa-solid fa-bullseye"></i>
@@ -362,7 +389,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                         <h2 id="campanhasEstatistica">-</h2>
                     </div>
                 </div>
-
 
                 <div class="card-estatistica">
                     <div class="icone">
@@ -376,7 +402,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                 </div>
 
             </div>
-
 
             <!-- ATIVIDADE RECENTE -->
             <div class="atividade">
@@ -403,42 +428,25 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                     <?php foreach ($atividadesRecentes as $atividade): ?>
 
                         <?php
-
-                        // Define o ícone
                         if ($atividade["tipo"] === "doacao") {
-
                             $icone = "❤️";
-
                         } elseif ($atividade["tipo"] === "favorito") {
-
                             $icone = "⭐";
-
                         } else {
-
                             $icone = "📌";
                         }
 
-
-                        // Calcula quanto tempo passou
                         $dataAtividade = new DateTime($atividade["dataAtividade"]);
                         $agora = new DateTime();
-
                         $diferenca = $agora->diff($dataAtividade);
 
-
                         if ($diferenca->days == 0) {
-
                             $tempo = "Hoje";
-
                         } elseif ($diferenca->days == 1) {
-
                             $tempo = "Ontem";
-
                         } else {
-
                             $tempo = $diferenca->days . " dias";
                         }
-
                         ?>
 
                         <div class="atividade-item">
@@ -448,7 +456,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                             </div>
 
                             <div>
-
                                 <h3>
                                     <?= htmlspecialchars($atividade["titulo"]) ?>
                                 </h3>
@@ -456,7 +463,6 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                                 <p>
                                     <?= htmlspecialchars($atividade["descricao"]) ?>
                                 </p>
-
                             </div>
 
                             <span>
@@ -476,7 +482,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
     </main>
 
     <div id="popupFoto" class="popup-foto">
-    <div class="popup-conteudo">
+        <div class="popup-conteudo">
 
             <button class="fechar-popup" type="button" onclick="fecharPopupFoto()">
                 &times;
@@ -494,9 +500,9 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                     Escolher foto
                 </label>
 
-                <input 
-                    type="file" 
-                    id="fotoPerfil" 
+                <input
+                    type="file"
+                    id="fotoPerfil"
                     name="fotoPerfil"
                     accept="image/jpeg,image/png,image/webp"
                     required
@@ -504,15 +510,15 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
                 <div class="botoes-popup">
 
-                    <button 
-                        type="button" 
-                        class="cancelar-foto" 
+                    <button
+                        type="button"
+                        class="cancelar-foto"
                         onclick="fecharPopupFoto()">
                         Cancelar
                     </button>
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         class="salvar-foto">
                         Salvar foto
                     </button>
@@ -524,8 +530,8 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
         </div>
     </div>
 
-    <script src="../js/perfil.js"></script>
-    
+    <script src="../js/perfil.js?v=2"></script>
+
 </body>
 
 </html>

@@ -5,6 +5,7 @@ $usuario = "root";
 $senha = "";
 $banco = "banco";
 
+//biblioteca de conexão do php para sql
 $conexao = new mysqli($host, $usuario, $senha, $banco);
 
 if ($conexao->connect_error) {

@@ -1,0 +1,281 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+}
+
+body {
+    background-color: #f2f4f7;
+    margin: 0;
+    padding: 20px 20px;
+}
+
+.container {
+    max-width: 440px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cabecalho {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.cabecalho h1 {
+    font-size: 22px;
+    color: #1a237e;
+    margin-bottom: 6px;
+}
+
+.cabecalho p {
+    color: #555;
+    font-size: 14px;
+}
+
+label {
+    font-size: 14px;
+}
+
+.titulo-secao {
+    display: block;
+    font-weight: bold;
+    font-size: 15px;
+    margin-top: 14px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+/* Grade com os 3 valores fixos */
+.opcoes-valor {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.opcao {
+    position: relative;
+}
+
+.opcao input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.opcao span {
+    display: block;
+    text-align: center;
+    padding: 14px 0;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Quando o radio está marcado, o cartão fica destacado */
+.opcao input[type="radio"]:checked + span {
+    border-color: #2e7d32;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+/* O campo de valor personalizado fica um pouco maior e em destaque */
+#valor_personalizado {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus {
+    outline: none;
+    border-color: #2e7d32;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 14px 0;
+}
+
+.botao-doar {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    background-color: #2e7d32;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.botao-doar:hover {
+    background-color: #256428;
+}
+
+/* ===== Abas de forma de pagamento (100% CSS, sem JavaScript) ===== */
+
+.bloco-pagamento {
+    position: relative;
+}
+
+/* Esconde os radio buttons que controlam as abas — eles continuam
+   funcionando normalmente, só não aparecem na tela */
+.aba-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.abas-pagamento {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.aba-botao {
+    display: block;
+    text-align: center;
+    padding: 10px 4px;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Todo o conteúdo das abas fica escondido por padrão */
+.conteudo-aba {
+    display: none;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 8px;
+}
+
+/* Quando o radio de uma aba está marcado, destaca o botão dela... */
+#tab-cartao:checked ~ .abas-pagamento label[for="tab-cartao"],
+#tab-pix:checked ~ .abas-pagamento label[for="tab-pix"] {
+    border-color: #2e7d32;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* ...e mostra o conteúdo correspondente a essa aba */
+#tab-cartao:checked ~ #aba-cartao,
+#tab-pix:checked ~ #aba-pix {
+    display: block;
+}
+
+.linha-dupla {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* ===== Escolha entre Crédito e Débito (dentro da aba Cartão) ===== */
+
+.rotulo-tipo-cartao {
+    display: block;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.tipo-cartao {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tipo-cartao-opcao {
+    position: relative;
+}
+
+.tipo-cartao-opcao input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.tipo-cartao-opcao span {
+    display: block;
+    text-align: center;
+    padding: 8px 0;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tipo-cartao-opcao input[type="radio"]:checked + span {
+    border-color: #2e7d32;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.texto-info {
+    color: #555;
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* ===== QR Code Pix (mostrado na página de confirmação) ===== */
+
+.bloco-pix-qr {
+    text-align: center;
+}
+
+.qr-code-imagem {
+    display: block;
+    margin: 0 auto 15px auto;
+    border: 2px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 8px;
+    background-color: #ffffff;
+}
+
+.pix-copia-cola {
+    width: 100%;
+    resize: none;
+    height: 70px;
+    padding: 10px;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #333;
+    background-color: #f8f9fa;
+    margin-bottom: 6px;
+}

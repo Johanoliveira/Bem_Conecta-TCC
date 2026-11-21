@@ -3,14 +3,12 @@
 // Inicia (ou retoma) a sessão do usuário, permitindo guardar dados que persistem entre as páginas (ex: usuário logado)
 session_start();
 
-// Inclui o arquivo responsável por criar a conexão com o banco de dados
+require_once 'paginaErro.php';
 require_once "conexao.php";
 
 // Garante que o script só pode ser executado via requisição POST (ex: envio de formulário)
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    // Interrompe o script se alguém tentar acessar a página diretamente
-    // (ex: digitando a URL no navegador) em vez de enviar o formulário
-    die("Acesso inválido.");
+    exibirErro("Acesso inválido.");
 }
 
 // O operador ?? evita erro caso o campo não tenha sido enviado (assume string vazia)
@@ -19,8 +17,7 @@ $senha = $_POST["senha"] ?? "";
 
 // Verifica se os campos foram preenchidos
 if (empty($login) || empty($senha)) {
-    // Interrompe o script se o usuário deixou login ou senha em branco
-    die("Preencha todos os campos.");
+    exibirErro("Preencha todos os campos.");
 }
 
 
@@ -38,9 +35,7 @@ $stmt = $conexao->prepare($sql);
 
 // Verifica se a preparação da consulta deu certo
 if (!$stmt) {
-    // Interrompe o script se houve erro ao preparar a query
-    // (ex: erro de sintaxe SQL ou problema de conexão)
-    die("Erro ao preparar consulta: " . $conexao->error);
+    exibirErro("Erro ao preparar consulta: " . $conexao->error);
 }
 
 // Associa o valor do e-mail digitado ao parâmetro da consulta ("s" = tipo string)
@@ -66,10 +61,7 @@ $stmt->close();
 // =====================================
 
 if (!$usuario) {
-    // Interrompe o script se nenhum usuário foi encontrado com esse e-mail.
-    // A mensagem é genérica ("E-mail ou senha incorretos") de propósito,
-    // para não revelar a quem tenta invadir se o e-mail existe ou não no sistema
-    die("E-mail ou senha incorretos.");
+    exibirErro("E-mail ou senha incorretos.");
 }
 
 
@@ -78,10 +70,7 @@ if (!$usuario) {
 // =====================================
 
 if (!password_verify($senha, $usuario["senha"])) {
-    // password_verify() compara a senha digitada com o hash salvo no banco
-    // (o mesmo hash gerado por password_hash() no cadastro).
-    // Se não bater, interrompe o script com a mesma mensagem genérica de antes
-    die("E-mail ou senha incorretos.");
+    exibirErro("E-mail ou senha incorretos.");
 }
 
 
@@ -101,8 +90,14 @@ $_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
 // =====================================
 // REDIRECIONA
 // =====================================
-// Após o login bem-sucedido, redireciona o usuário para a página inicial
-header("Location: ../php/inicialPage.php");
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Mantenha aqui as linhas em que você salva os dados na $_SESSION
+// Exemplo: $_SESSION['id'] = $usuario['id'];
+
+header("Location: inicialPage.php");
 exit;
 
 ?>

@@ -1,20 +1,18 @@
 <?php
 
-// Inclui o arquivo responsável por criar a conexão com o banco de dados
+session_start();
+
+require_once 'paginaErro.php';
 require_once __DIR__ . "/conexao.php";
 
 // Verifica se a variável de conexão foi realmente criada pelo arquivo incluído
 if (!isset($conexao)) {
-    // die() imprime a mensagem na tela e encerra o script imediatamente,
-    // ou seja, nenhuma linha abaixo desta será executada
-    die("Erro: conexão com o banco de dados não foi configurada.");
+    exibirErro("Erro: conexão com o banco de dados não foi configurada.");
 }
 
 // Garante que o script só pode ser executado via requisição POST (ex: envio de formulário)
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    // Interrompe o script se alguém tentar acessar a página diretamente
-    // (ex: digitando a URL no navegador) em vez de enviar o formulário
-    die("Acesso inválido.");
+    exibirErro("Acesso inválido.");
 }
 
 
@@ -28,25 +26,27 @@ $senha = $_POST["senha"] ?? "";
 $confirmarSenha = $_POST["confirmar-senha"] ?? "";
 
 
-// =====================================
-// VALIDAÇÃO DOS CAMPOS OBRIGATÓRIOS
-// =====================================
-// Verifica se algum dos campos essenciais está vazio
-if (empty($usuario) || empty($dataNasc) || empty($email) || empty($telefone) || empty($senha) || empty($confirmarSenha)) {
-    // Interrompe o script se o usuário deixou algum campo em branco
-    die("Preencha todos os campos.");
+// Verifica os campos
+
+if (
+    empty($usuario) ||
+    empty($dataNasc) ||
+    empty($email) ||
+    empty($telefone) ||
+    empty($senha) ||
+    empty($confirmarSenha)
+) {
+    exibirErro("Preencha todos os campos.");
 }
 
 // Confere se a senha e a confirmação de senha são iguais
 if ($senha !== $confirmarSenha) {
-    // Interrompe o script se a senha e a confirmação forem diferentes
-    die("As senhas não coincidem.");
+    exibirErro("As senhas não coincidem.");
 }
 
 // Verifica se o checkbox de aceite dos termos foi marcado
 if (!isset($_POST["termos"])) {
-    // Interrompe o script se o checkbox de termos não foi marcado
-    die("Você precisa aceitar os Termos de Uso.");
+    exibirErro("Você precisa aceitar os Termos de Uso.");
 }
 
 
@@ -61,9 +61,7 @@ $stmt = $conexao->prepare($sql);
 
 // Verifica se a preparação da consulta deu certo
 if (!$stmt) {
-    // Interrompe o script se houve algum erro ao preparar a consulta SQL
-    // (ex: erro de sintaxe na query ou problema de conexão)
-    die("Erro ao preparar consulta: " . $conexao->error);
+    exibirErro("Erro ao preparar consulta: " . $conexao->error);
 }
 
 
@@ -79,8 +77,7 @@ $resultado = $stmt->get_result();
 
 // Se encontrou alguma linha, significa que o e-mail já está cadastrado
 if ($resultado->num_rows > 0) {
-    // Interrompe o script se já existir um usuário com esse e-mail no banco
-    die("Este e-mail já está cadastrado.");
+    exibirErro("Este e-mail já está cadastrado.");
 }
 
 
@@ -182,8 +179,10 @@ try {
     // Se chegou até aqui sem erros, confirma definitivamente as duas inserções no banco
     $conexao->commit();
 
-    // Mensagem de sucesso
-    echo "Cadastro realizado com sucesso!";
+    $_SESSION["usuario_id"] = $idMUsuario;
+    $_SESSION["usuario_nome"] = $usuario;
+    $_SESSION["usuario_email"] = $email;
+    $_SESSION["usuario_foto"] = "perfil.png";
 
 
 // O bloco catch "captura" a exceção lançada por qualquer throw dentro do try.
@@ -195,14 +194,17 @@ try {
     // Se qualquer uma das inserções falhar, desfaz tudo que foi feito na transação
     $conexao->rollback();
 
-    // Exibe a mensagem de erro capturada
-    echo "Erro ao cadastrar: " . $e->getMessage();
+    exibirErro("Erro ao cadastrar: " . $e->getMessage());
 }
 
-// Fecha a conexão com o banco de dados
-$conexao->close();
 
-// Após o processamento, redireciona o usuário para a página inicial
-header("Location: ../php/inicialPage.php");
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Mantenha aqui as linhas em que você salva os dados na $_SESSION
+// Exemplo: $_SESSION['id'] = $usuario['id'];
+
+header("Location: inicialPage.php");
 exit;
 ?>

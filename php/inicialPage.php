@@ -13,11 +13,16 @@ $foto = $_SESSION["usuario_foto"];
 
 
 $nivelDeSeguranca = 1;
+$idOngLogada = 0;
 
 $sqlNivel = "
-    SELECT nivelDeSeguranca
-    FROM MoldeUsuario
-    WHERE idMUsuario = ?
+    SELECT
+        mu.nivelDeSeguranca,
+        o.idONG
+    FROM MoldeUsuario mu
+    LEFT JOIN ONGs o
+        ON o.idMoldeUsuario = mu.idMUsuario
+    WHERE mu.idMUsuario = ?
     LIMIT 1
 ";
 
@@ -34,6 +39,7 @@ if ($stmtNivel) {
 
     if ($usuario) {
         $nivelDeSeguranca = (int) $usuario["nivelDeSeguranca"];
+        $idOngLogada = $usuario["idONG"] !== null ? (int) $usuario["idONG"] : 0;
     }
 
     $stmtNivel->close();
@@ -113,7 +119,11 @@ if ($stmt) {
     <link rel="stylesheet" href="../css/inicialPage.css">
 </head>
 
-<body>
+<body
+    data-usuario-nome="<?php echo htmlspecialchars($nome, ENT_QUOTES, 'UTF-8'); ?>"
+    data-nivel-seguranca="<?php echo (int) $nivelDeSeguranca; ?>"
+    data-id-ong="<?php echo (int) $idOngLogada; ?>">
+
 <!-- TOPO -->
 <header class="topbar">
     <div class="logos">
@@ -125,10 +135,11 @@ if ($stmt) {
         </div>
     </div>
 
+    <!-- Menu Superior -->
     <nav class="menu">
-    <a href="#">Projetos</a>
-    <a href="#">ONGs</a>
-    <a href="#">Doações</a>
+        <a href="campanhas.php">Projetos</a>
+        <a href="ongs.php">ONGs</a>
+        <a href="minhasDoacoes.php">Doações</a>
     </nav>
 
     <div class="top-actions">
@@ -153,12 +164,12 @@ if ($stmt) {
     <div class="sidebar-card">
         <h3>Menu</h3>
 
-        <a href="#">🏠 Página Inicial</a>
-        <a href="#">❤️ Minhas Doações</a>
-        <a href="#">📌 ONGs Favoritas</a>
-        <a href="#">📄 Campanhas</a>
-        <a href="#">👤 Meu Perfil</a>
-        <a href="#">⚙ Configurações</a>
+        <a href="inicialPage.php">🏠 Página Inicial</a>
+        <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
+        <a href="ongs.php">📌 ONGs Favoritas</a>
+        <a href="campanhas.php">📄 Campanhas</a>
+        <a href="perfil.php">👤 Meu Perfil</a>
+        <a href="perfil.php">⚙ Configurações</a>
     </div>
 
     <!-- SEU IMPACTO -->
@@ -240,6 +251,6 @@ if ($stmt) {
     </aside>
 
 </div>
-<script src="../js/inicialPage.js"></script>
+<script src="../js/inicialPage.js?v=4"></script>
 </body>
 </html>

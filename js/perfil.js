@@ -249,3 +249,123 @@ document.getElementById("formFoto").addEventListener("submit", async function (e
 
 // Carrega o perfil quando a página abre
 carregarPerfil();
+
+// =========================
+// EDIÇÃO DE INFORMAÇÕES DO PERFIL
+// =========================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btnEditar = document.getElementById("btnEditarPerfil");
+    const btnCancelar = document.getElementById("btnCancelarEdicao");
+
+    if (!btnEditar || !btnCancelar) {
+        return;
+    }
+
+    const campoNome = document.getElementById("campoNome");
+    const campoTelefone = document.getElementById("campoTelefone");
+    const campoEmail = document.getElementById("campoEmail");
+    const avisoEmail = document.getElementById("avisoEmail");
+
+    const nomeCompletoP = document.getElementById("nomeCompleto");
+    const nomeUsuarioH2 = document.getElementById("nomeUsuario");
+    const telefoneP = document.getElementById("telefoneUsuario");
+
+    const inputNome = document.getElementById("inputNome");
+    const inputTelefone = document.getElementById("inputTelefone");
+
+    let emEdicao = false;
+
+    function ativarModoEdicao() {
+        emEdicao = true;
+
+        const nomeAtual = nomeCompletoP.textContent.trim();
+        const telAtual = telefoneP.textContent.trim();
+
+        inputNome.value = nomeAtual === "-" ? "" : nomeAtual;
+        inputTelefone.value = telAtual === "-" ? "" : telAtual;
+
+        nomeCompletoP.style.display = "none";
+        telefoneP.style.display = "none";
+
+        inputNome.style.display = "block";
+        inputTelefone.style.display = "block";
+
+        campoNome.classList.add("campo-editavel-ativo");
+        campoTelefone.classList.add("campo-editavel-ativo");
+
+        campoEmail.classList.add("campo-bloqueado");
+        avisoEmail.style.display = "inline";
+
+        btnEditar.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Alterações';
+        btnCancelar.style.display = "inline-block";
+        inputNome.focus();
+    }
+
+    function desativarModoEdicao() {
+        emEdicao = false;
+
+        inputNome.style.display = "none";
+        inputTelefone.style.display = "none";
+
+        nomeCompletoP.style.display = "block";
+        telefoneP.style.display = "block";
+
+        campoNome.classList.remove("campo-editavel-ativo");
+        campoTelefone.classList.remove("campo-editavel-ativo");
+
+        campoEmail.classList.remove("campo-bloqueado");
+        avisoEmail.style.display = "none";
+
+        btnEditar.innerHTML = '<i class="fa-solid fa-pen"></i> Editar Perfil';
+        btnCancelar.style.display = "none";
+    }
+
+    btnCancelar.addEventListener("click", () => {
+        desativarModoEdicao();
+    });
+
+    btnEditar.addEventListener("click", async () => {
+        if (!emEdicao) {
+            ativarModoEdicao();
+            return;
+        }
+
+        btnEditar.disabled = true;
+        btnEditar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+        const formData = new FormData();
+        formData.append("acao", "editar_perfil");
+        formData.append("nome", inputNome.value.trim());
+        formData.append("telefone", inputTelefone.value.trim());
+
+        try {
+            const resposta = await fetch("perfil.php", {
+                method: "POST",
+                body: formData
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resultado.sucesso) {
+                alert(resultado.mensagem || "Erro ao salvar no banco de dados.");
+                window.location.reload();
+                return;
+            }
+
+            const nomeSalvo = inputNome.value.trim() || "-";
+            const telSalvo = inputTelefone.value.trim() || "-";
+
+            nomeCompletoP.textContent = nomeSalvo;
+            nomeUsuarioH2.textContent = nomeSalvo;
+            telefoneP.textContent = telSalvo;
+
+            desativarModoEdicao();
+        } catch (erro) {
+            alert("Erro inesperado ao salvar no banco de dados.");
+            window.location.reload();
+        } finally {
+            btnEditar.disabled = false;
+        }
+    });
+});

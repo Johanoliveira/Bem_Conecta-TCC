@@ -851,3 +851,82 @@ CABEÇALHO
     background: #238b36;
     color: white;
 }
+
+/* =========================
+   EDIÇÃO DE PERFIL
+========================= */
+
+.acoes-perfil {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.botao-cancelar {
+    display: none;
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.botao-cancelar:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+}
+
+/* Destaque amarelo nos campos editáveis */
+.campo.campo-editavel-ativo {
+    background-color: #fff9c4;
+    border: 2px solid #fbc02d;
+    transition: all 0.25s ease;
+}
+
+.input-edicao {
+    display: none;
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: bold;
+    color: #333;
+    background-color: #fff59d;
+    border: 2px solid #f9a825;
+    border-radius: 6px;
+    outline: none;
+}
+
+.input-edicao:focus {
+    background-color: #fff176;
+    border-color: #f57f17;
+}
+
+.campo-bloqueado {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.aviso-bloqueado {
+    display: none;
+    font-size: 12px;
+    color: #b71c1c;
+    margin-left: 6px;
+    font-weight: normal;
+}
+
+@media (max-width: 750px) {
+    .acoes-perfil {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .botao-cancelar {
+        width: 100%;
+    }
+}

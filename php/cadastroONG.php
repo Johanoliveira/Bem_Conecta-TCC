@@ -1,6 +1,8 @@
 <?php
 
-// Inclui o arquivo responsável por criar a conexão com o banco de dados
+session_start();
+
+require_once 'paginaErro.php';
 require_once "conexao.php";
 
 // =====================================
@@ -17,16 +19,21 @@ $confirmarSenha = $_POST["confirmar-senha"] ?? "";
 $fotoPerfil = null;
 
 
-// Verifica se algum dos campos essenciais está vazio
-if (empty($nome) || empty($cnpj) || empty($descricao) || empty($email) || empty($telefone) || empty($senha) || empty($confirmarSenha)) {
-    // Interrompe o script se o usuário deixou algum campo em branco
-    die("Preencha todos os campos.");
+// Verifica se todos os campos foram preenchidos
+if (
+    empty($nome) ||
+    empty($cnpj) ||
+    empty($email) ||
+    empty($telefone) ||
+    empty($senha) ||
+    empty($confirmarSenha)
+) {
+    exibirErro("Preencha todos os campos.");
 }
 
 // Confere se a senha e a confirmação de senha são iguais
 if ($senha !== $confirmarSenha) {
-    // Interrompe o script se a senha e a confirmação forem diferentes
-    die("As senhas não coincidem.");
+    exibirErro("As senhas não coincidem.");
 }
 
 // Remove tudo que não for dígito do CNPJ (pontos, barra e traço), deixando só os números
@@ -53,9 +60,7 @@ $stmtUsuario = $conexao->prepare($sqlUsuario);
 
 // Verifica se a preparação da consulta deu certo
 if (!$stmtUsuario) {
-    // Interrompe o script se houve erro ao preparar a query
-    // (ex: erro de sintaxe SQL ou problema de conexão)
-    die("Erro ao preparar cadastro do usuário: " . $conexao->error);
+    exibirErro("Erro ao preparar cadastro do usuário: " . $conexao->error);
 }
 
 // Associa os valores aos parâmetros da query ("sssss" = 5 parâmetros do tipo string)
@@ -63,7 +68,7 @@ $stmtUsuario->bind_param("sssss", $nome, $email, $senhaCriptografada, $fotoPerfi
 
 // Executa a inserção; se falhar, interrompe o script
 if (!$stmtUsuario->execute()) {
-    die("Erro ao cadastrar usuário: " . $stmtUsuario->error);
+    exibirErro("Erro ao cadastrar usuário: " . $stmtUsuario->error);
 }
 
 // Pega o ID gerado automaticamente pela inserção (chave primária do novo usuário)
@@ -87,7 +92,7 @@ $stmtONG = $conexao->prepare($sqlONG);
 
 // Verifica se a preparação da consulta deu certo
 if (!$stmtONG) {
-    die("Erro ao preparar cadastro da ONG: " . $conexao->error);
+    exibirErro("Erro ao preparar cadastro da ONG: " . $conexao->error);
 }
 
 // Associa os valores aos parâmetros ("i" = inteiro, "s" = string)
@@ -118,19 +123,19 @@ if (!$stmtONG->execute()) {
     // Fecha o statement de exclusão
     $stmtDelete->close();
 
-    // Interrompe o script informando o erro no cadastro da ONG
-    die("Erro ao cadastrar ONG: " . $stmtONG->error);
+    exibirErro("Erro ao cadastrar ONG: " . $stmtONG->error);
 }
 
 // Fecha o statement após o uso
 $stmtONG->close();
 
+$_SESSION["usuario_id"] = $idMoldeUsuario;
+$_SESSION["usuario_nome"] = $nome;
+$_SESSION["usuario_email"] = $email;
+$_SESSION["usuario_foto"] = $fotoPerfil;
 
-// Fecha a conexão com o banco de dados
-$conexao->close();
-
-// Após o processamento, redireciona o usuário para a página inicial
-header("Location: ../php/inicialPage.php");
+// Fecha a conexão
+header("Location: inicialPage.php");
 exit;
 
 ?>

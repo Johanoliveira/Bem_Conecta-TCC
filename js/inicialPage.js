@@ -1,6 +1,7 @@
 const searchBtn = document.getElementById("searchBtn");
 const searchBox = document.querySelector(".search-box");
 const searchInput = document.getElementById("searchInput");
+const nomeUsuario = document.body.dataset.usuarioNome || "Usuário";
 
 searchBtn.addEventListener("click", () => {
     searchBox.classList.toggle("active");
@@ -97,13 +98,27 @@ function criarPost(post, container) {
 
     const data = formatarData(post.dataPublicacao);
 
+    const nivelSeguranca = Number(document.body.dataset.nivelSeguranca || 1);
+    const idOngLogada = Number(document.body.dataset.idOng || 0);
+
+    const podeExcluir =
+        nivelSeguranca === 3 ||
+        (nivelSeguranca === 2 && idOngLogada > 0 && Number(post.idONG) === idOngLogada);
+
+    const botaoExcluirHTML = podeExcluir
+        ? `<button class="delete-post-btn" data-post-id="${post.idPost}" style="background:#d93025; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Excluir</button>`
+        : "";
+
     article.innerHTML = `
 
         <div class="post-header">
 
-            <div>
-                <h3>${escaparHTML(post.nomeONG)}</h3>
-                <span>${data}</span>
+           <div class="post-header" style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <h3>${escaparHTML(post.nomeONG)}</h3>
+                    <span>${data}</span>
+                </div>
+                ${botaoExcluirHTML}
             </div>
 
         </div>
@@ -141,12 +156,12 @@ function criarPost(post, container) {
             </button>
 
 
-            <button
+           <button
                 class="donate-btn"
-                data-post-id="${post.idPost}">
+                data-post-id="${post.idPost}"
+                onclick="window.location.href='../html/pagamento.html?idPost=${post.idPost}'">
                 Doar Agora
             </button>
-
 
             <button
                 class="details-btn"
@@ -423,6 +438,38 @@ document.addEventListener("click", function(event) {
         carregarPosts();
     }
 
+    // EXCLUIR POST
+    const deleteButton = event.target.closest(".delete-post-btn");
+
+    if (deleteButton) {
+        const idPost = Number(deleteButton.dataset.postId);
+
+        if (!confirm("Tem certeza que deseja excluir esta publicação?")) {
+            return;
+        }
+
+        deleteButton.disabled = true;
+
+        fetch("../php/excluirPost.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idPost })
+        })
+        .then(res => res.json())
+        .then(dados => {
+            if (!dados.sucesso) {
+                alert(dados.erro || "Não foi possível excluir a publicação.");
+                deleteButton.disabled = false;
+                return;
+            }
+            deleteButton.closest(".post-card").remove();
+        })
+        .catch(() => {
+            alert("Erro de conexão ao tentar excluir a publicação.");
+            deleteButton.disabled = false;
+        });
+    }
+
 });
 
 
@@ -451,3 +498,18 @@ document.addEventListener("keydown", function(event) {
 // INICIA OS POSTS
 
 carregarPosts();
+
+// =========================
+// PESQUISA DE POSTS E ONGs
+// =========================
+if (searchInput) {
+    searchInput.addEventListener("input", function () {
+        const termo = this.value.toLowerCase().trim();
+        const cards = document.querySelectorAll(".post-card");
+
+        cards.forEach(card => {
+            const textoCard = card.textContent.toLowerCase();
+            card.style.display = textoCard.includes(termo) ? "" : "none";
+        });
+    });
+}
