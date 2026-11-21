@@ -158,12 +158,12 @@ function criarPost(post, container) {
             </button>
 
 
-            <button
+           <button
                 class="donate-btn"
-                data-post-id="${post.idPost}">
+                data-post-id="${post.idPost}"
+                onclick="window.location.href='../html/pagamento.html?idPost=${post.idPost}'">
                 Doar Agora
             </button>
-
 
             <button
                 class="details-btn"

@@ -6,12 +6,61 @@ require_once "conexao.php";
 
 // Verifica se existe usuário logado
 if (!isset($_SESSION["usuario_id"])) {
-    header("Location: login.html");
+    header("Location: ../html/login.html");
     exit;
 }
 
-$idUsuario = $_SESSION["usuario_id"];
+$idUsuario = (int) $_SESSION["usuario_id"];
 
+// =====================================
+// SALVAR EDIÇÃO DO PERFIL NO BANCO
+// =====================================
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["acao"]) && $_POST["acao"] === "editar_perfil") {
+    header("Content-Type: application/json; charset=utf-8");
+
+    $novoNome = trim($_POST["nome"] ?? "");
+    $novoTelefone = trim($_POST["telefone"] ?? "");
+
+    if ($novoNome === "") {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Erro ao salvar: o campo Nome completo não pode ficar vazio."
+        ]);
+        exit;
+    }
+
+    try {
+        $sqlUpdate = "UPDATE MoldeUsuario SET nome = ?, telefone = ? WHERE idMUsuario = ?";
+        $stmtUpdate = $conexao->prepare($sqlUpdate);
+
+        if (!$stmtUpdate) {
+            throw new Exception($conexao->error);
+        }
+
+        $stmtUpdate->bind_param("ssi", $novoNome, $novoTelefone, $idUsuario);
+
+        if (!$stmtUpdate->execute()) {
+            throw new Exception($stmtUpdate->error);
+        }
+
+        $stmtUpdate->close();
+
+        if (isset($_SESSION["nome"])) {
+            $_SESSION["nome"] = $novoNome;
+        }
+
+        echo json_encode([
+            "sucesso" => true,
+            "mensagem" => "Dados atualizados com sucesso!"
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Erro ao salvar no banco de dados: " . $e->getMessage()
+        ]);
+    }
+    exit;
+}
 
 // Busca os dados do usuário
 $sql = "SELECT idMUsuario, nome, email, telefone, fotoPerfil, nivelDeSeguranca
@@ -28,17 +77,21 @@ $stmt->bind_param("i", $idUsuario);
 $stmt->execute();
 
 $resultado = $stmt->get_result();
-
 $usuario = $resultado->fetch_assoc();
-
 $stmt->close();
+
+// Verifica se o usuário existe
+if (!$usuario) {
+    session_destroy();
+    header("Location: ../html/login.html");
+    exit;
+}
 
 $nivel = (int) ($usuario["nivelDeSeguranca"] ?? 1);
 
 // =====================================
 // ATIVIDADES RECENTES
 // =====================================
-
 $sqlAtividades = "
     SELECT *
     FROM (
@@ -74,20 +127,6 @@ $sqlAtividades = "
         INNER JOIN UsuarioComum uc
             ON f.idUsuarioComum = uc.idUsuarioComum
         WHERE uc.idMoldeUsuario = ?
-
-        UNION ALL
-
-        SELECT
-            'voluntariado' AS tipo,
-            'Você participou de uma atividade' AS titulo,
-            a.titulo AS descricao,
-            v.dataInscricao AS dataAtividade
-        FROM voluntariado v
-        INNER JOIN atividades a
-            ON v.idAtividade = a.idAtividade
-        INNER JOIN UsuarioComum uc
-            ON v.idUsuarioComum = uc.idUsuarioComum
-        WHERE uc.idMoldeUsuario = ?
     ) AS atividades_recentes
 
     ORDER BY dataAtividade DESC
@@ -101,32 +140,20 @@ if (!$stmtAtividades) {
 }
 
 $stmtAtividades->bind_param(
-    "iii",
-    $idUsuario,
+    "ii",
     $idUsuario,
     $idUsuario
 );
 
 $stmtAtividades->execute();
-
 $resultadoAtividades = $stmtAtividades->get_result();
 
 $atividadesRecentes = [];
-
 while ($atividade = $resultadoAtividades->fetch_assoc()) {
     $atividadesRecentes[] = $atividade;
 }
 
 $stmtAtividades->close();
-
-// Verifica se o usuário existe
-if (!$usuario) {
-    session_destroy();
-
-    header("Location: login.html");
-    exit;
-}
-
 
 // Dados
 $nome = $usuario["nome"] ?: "-";
@@ -135,7 +162,6 @@ $telefone = $usuario["telefone"] ?: "-";
 $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -144,7 +170,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Bem Conecta</title>
 
-    <link rel="stylesheet" href="../css/perfil.css">
+    <link rel="stylesheet" href="../css/perfil.css?v=2">
 
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -164,7 +190,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
             </div>
         </div>
 
-
         <nav class="menu-superior">
             <a href="../php/inicialPage.php">Início</a>
             <a href="#">Projetos</a>
@@ -172,9 +197,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
             <a href="#">Doações</a>
         </nav>
 
-
         <div class="usuario-topo">
-
             <button class="botao-pesquisa">
                 🔍
             </button>
@@ -182,10 +205,8 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
     </header>
 
-
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="pagina">
-
 
         <!-- MENU LATERAL -->
         <aside class="sidebar">
@@ -237,10 +258,8 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
         </aside>
 
-
         <!-- ÁREA DO PERFIL -->
         <section class="conteudo-perfil">
-
 
             <!-- TÍTULO -->
             <div class="titulo-pagina">
@@ -248,10 +267,8 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                 <p>Gerencie suas informações e acompanhe seu impacto.</p>
             </div>
 
-
             <!-- CARD PRINCIPAL -->
             <div class="card-perfil">
-
 
                 <div class="perfil-cabecalho">
 
@@ -266,7 +283,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                             ✎
                         </button>
                     </div>
-
 
                     <div class="informacoes-principais">
 
@@ -287,17 +303,19 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                     </div>
 
-
-                    <button class="botao-editar">
-                        <i class="fa-solid fa-pen"></i>
-                        Editar Perfil
-                    </button>
+                    <div class="acoes-perfil">
+                        <button type="button" class="botao-editar" id="btnEditarPerfil">
+                            <i class="fa-solid fa-pen"></i>
+                            Editar Perfil
+                        </button>
+                        <button type="button" class="botao-cancelar" id="btnCancelarEdicao" style="display: none;">
+                            Cancelar
+                        </button>
+                    </div>
 
                 </div>
 
-
                 <hr>
-
 
                 <!-- INFORMAÇÕES PESSOAIS -->
                 <div class="secao">
@@ -306,29 +324,45 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                     <div class="grid-informacoes">
 
-                        <div class="campo">
+                        <div class="campo" id="campoNome">
                             <span>Nome completo</span>
                             <p id="nomeCompleto">
-                            <?php echo htmlspecialchars($nome); ?>
+                                <?php echo htmlspecialchars($nome); ?>
+                            </p>
+                            <input
+                                type="text"
+                                id="inputNome"
+                                class="input-edicao"
+                                style="display: none;"
+                                value="<?php echo htmlspecialchars($nome === '-' ? '' : $nome); ?>"
+                                placeholder="Digite seu nome completo"
+                            >
+                        </div>
+
+                        <div class="campo" id="campoEmail">
+                            <span>E-mail <small class="aviso-bloqueado" id="avisoEmail" style="display: none;">(não editável)</small></span>
+                            <p class="email">
+                                <i class="fa-solid fa-envelope"></i>
+                                <?php echo htmlspecialchars($email); ?>
                             </p>
                         </div>
 
-                        <div class="campo">
-                            <span>E-mail</span>
-                            <p class="email" id="emailUsuario">
-                            <i class="fa-solid fa-envelope"></i>
-                            <?php echo htmlspecialchars($email); ?>
-                        </p>
-                        </div>
-
-                        <div class="campo">
+                        <div class="campo" id="campoTelefone">
                             <span>Telefone</span>
                             <p id="telefoneUsuario">
                                 <?php echo htmlspecialchars($telefone); ?>
                             </p>
+                            <input
+                                type="text"
+                                id="inputTelefone"
+                                class="input-edicao"
+                                style="display: none;"
+                                value="<?php echo htmlspecialchars($telefone === '-' ? '' : $telefone); ?>"
+                                placeholder="(00) 00000-0000"
+                            >
                         </div>
 
-                        <div class="campo">
+                        <div class="campo" id="campoLocalizacao">
                             <span>Localização</span>
                             <p>São Paulo, SP</p>
                         </div>
@@ -337,17 +371,15 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 </div>
 
-
                 <!-- INTERESSES -->
                 <div class="secao interesses">
                     <h2>Causas que você apoia</h2>
                     <div class="tags" id="listaCausas">
-                    <span>-</span>
-                </div>
+                        <span>-</span>
+                    </div>
                 </div>
 
             </div>
-
 
             <!-- ESTATÍSTICAS -->
             <div class="estatisticas">
@@ -363,7 +395,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                     </div>
                 </div>
 
-
                 <div class="card-estatistica">
                     <div class="icone">
                         <i class="fa-solid fa-bullseye"></i>
@@ -374,7 +405,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                         <h2 id="campanhasEstatistica">-</h2>
                     </div>
                 </div>
-
 
                 <div class="card-estatistica">
                     <div class="icone">
@@ -388,7 +418,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                 </div>
 
             </div>
-
 
             <!-- ATIVIDADE RECENTE -->
             <div class="atividade">
@@ -415,46 +444,25 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                     <?php foreach ($atividadesRecentes as $atividade): ?>
 
                         <?php
-
-                        // Define o ícone
                         if ($atividade["tipo"] === "doacao") {
-
                             $icone = "❤️";
-
                         } elseif ($atividade["tipo"] === "favorito") {
-
                             $icone = "⭐";
-
-                        } elseif ($atividade["tipo"] === "voluntariado") {
-
-                            $icone = "🎯";
-
                         } else {
-
                             $icone = "📌";
                         }
 
-
-                        // Calcula quanto tempo passou
                         $dataAtividade = new DateTime($atividade["dataAtividade"]);
                         $agora = new DateTime();
-
                         $diferenca = $agora->diff($dataAtividade);
 
-
                         if ($diferenca->days == 0) {
-
                             $tempo = "Hoje";
-
                         } elseif ($diferenca->days == 1) {
-
                             $tempo = "Ontem";
-
                         } else {
-
                             $tempo = $diferenca->days . " dias";
                         }
-
                         ?>
 
                         <div class="atividade-item">
@@ -464,7 +472,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                             </div>
 
                             <div>
-
                                 <h3>
                                     <?= htmlspecialchars($atividade["titulo"]) ?>
                                 </h3>
@@ -472,7 +479,6 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                                 <p>
                                     <?= htmlspecialchars($atividade["descricao"]) ?>
                                 </p>
-
                             </div>
 
                             <span>
@@ -492,7 +498,7 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
     </main>
 
     <div id="popupFoto" class="popup-foto">
-    <div class="popup-conteudo">
+        <div class="popup-conteudo">
 
             <button class="fechar-popup" type="button" onclick="fecharPopupFoto()">
                 &times;
@@ -510,9 +516,9 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
                     Escolher foto
                 </label>
 
-                <input 
-                    type="file" 
-                    id="fotoPerfil" 
+                <input
+                    type="file"
+                    id="fotoPerfil"
                     name="fotoPerfil"
                     accept="image/jpeg,image/png,image/webp"
                     required
@@ -520,15 +526,15 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
 
                 <div class="botoes-popup">
 
-                    <button 
-                        type="button" 
-                        class="cancelar-foto" 
+                    <button
+                        type="button"
+                        class="cancelar-foto"
                         onclick="fecharPopupFoto()">
                         Cancelar
                     </button>
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         class="salvar-foto">
                         Salvar foto
                     </button>
@@ -540,8 +546,8 @@ $foto = $usuario["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
         </div>
     </div>
 
-    <script src="../js/perfil.js"></script>
-    
+    <script src="../js/perfil.js?v=2"></script>
+
 </body>
 
 </html>

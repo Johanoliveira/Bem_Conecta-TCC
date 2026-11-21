@@ -170,5 +170,13 @@ try {
 }
 
 
-$conexao->close();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Mantenha aqui as linhas em que você salva os dados na $_SESSION
+// Exemplo: $_SESSION['id'] = $usuario['id'];
+
+header("Location: inicialPage.php");
+exit;
 ?>
