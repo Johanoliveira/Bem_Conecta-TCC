@@ -171,10 +171,4 @@ try {
 
 
 $conexao->close();
-
-$mensagem = "Este e-mail ou CPF já está cadastrado no sistema.";
-$linkVoltar = "../html/cadastroDoador.html";
-$textoBotao = "Voltar para o Cadastro de Doador";
-include 'paginaErro.php';
-exit;
 ?>

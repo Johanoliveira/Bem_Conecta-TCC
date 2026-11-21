@@ -76,11 +76,5 @@ $_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
 // REDIRECIONA
 // =====================================
 
-// Exemplo quando o usuário errar login ou senha:
-$mensagem = "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
-$linkVoltar = "../html/login.html";
-$textoBotao = "Voltar para o Login";
-include 'paginaErro.php';
-exit;
 
 ?>

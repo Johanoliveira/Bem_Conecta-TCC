@@ -119,16 +119,7 @@ $_SESSION["usuario_email"] = $email;
 $_SESSION["usuario_foto"] = $fotoPerfil;
 
 // Fecha a conexão
-$conexao->close();
-
-// =====================================
-// REDIRECIONA
-// =====================================
-
-$mensagem = "Não foi possível concluir o cadastro. Verifique o CNPJ ou e-mail informado.";
-$linkVoltar = "../html/cadastroONG.html";
-$textoBotao = "Voltar para o Cadastro da ONG";
-include 'paginaErro.php';
+header("Location: inicialPage.php");
 exit;
 
 ?>
