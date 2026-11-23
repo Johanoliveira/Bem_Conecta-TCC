@@ -1,281 +1,605 @@
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: #f2f4f7;
-    margin: 0;
-    padding: 20px 20px;
+    min-height: 100vh;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
+        url("../img/jpg/holder.jpg");
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    color: #2d2d2d;
 }
 
-.container {
-    max-width: 440px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.checkout-wrapper {
+    width: 100%;
+    max-width: 540px;
 }
 
-.cabecalho {
-    text-align: center;
-    margin-bottom: 15px;
+.voltar-topo {
+    display: inline-block;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(8px);
+    transition: background 0.2s ease;
 }
 
-.cabecalho h1 {
-    font-size: 22px;
-    color: #1a237e;
+.voltar-topo:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.checkout-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.35);
+}
+
+/* =========================
+   STEPPER (3 ETAPAS)
+========================= */
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: #999999;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.step-circulo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #777777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.step-item.ativo .step-circulo {
+    background: #22a848;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(34, 168, 72, 0.2);
+}
+
+.step-item.ativo .step-nome {
+    color: #22a848;
+}
+
+.step-item.concluido .step-circulo {
+    background: #176d28;
+    color: #ffffff;
+}
+
+.step-item.concluido .step-nome {
+    color: #176d28;
+}
+
+.step-linha {
+    flex: 1;
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 10px 20px;
+    border-radius: 3px;
+    transition: background 0.25s ease;
+}
+
+.step-linha.ativa {
+    background: #22a848;
+}
+
+/* =========================
+   CARD DA ONG E CAMPANHA
+========================= */
+.destino-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #f3faf4;
+    border: 1px solid #ccebd1;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.destino-box img {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #22a848;
+    flex-shrink: 0;
+}
+
+.destino-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.destino-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666666;
+    font-weight: 700;
+}
+
+.destino-info h2 {
+    color: #1e7e34;
+    font-size: 1.25rem;
+    margin-top: 2px;
+}
+
+.campanha-badge {
+    margin-top: 6px;
+    background: #dff4e2;
+    color: #176d28;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.seletor-destino {
+    margin-bottom: 18px;
+}
+
+.seletor-destino label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
     margin-bottom: 6px;
 }
 
-.cabecalho p {
-    color: #555;
+.seletor-destino select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
     font-size: 14px;
+    background: #fff;
 }
 
-label {
+/* =========================
+   ALERTA DE ERRO
+========================= */
+.alerta-erro {
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    color: #b71c1c;
+    padding: 12px 14px;
+    border-radius: 10px;
     font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* =========================
+   CONTEÚDO DAS ETAPAS
+========================= */
+.etapa-conteudo {
+    display: none;
+}
+
+.etapa-conteudo.ativo {
+    display: block;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .titulo-secao {
     display: block;
-    font-weight: bold;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 12px;
     font-size: 15px;
-    margin-top: 14px;
-    margin-bottom: 8px;
-    color: #333;
 }
 
-/* Grade com os 3 valores fixos */
 .opcoes-valor {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
 }
 
-.opcao {
-    position: relative;
-}
-
-.opcao input[type="radio"] {
-    position: absolute;
-    opacity: 0;
+.valor-chip {
+    padding: 12px 8px;
+    border: 2px solid #d4e8d7;
+    background: #f8fbf8;
+    color: #1e7e34;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.opcao span {
+.valor-chip:hover {
+    border-color: #22a848;
+}
+
+.valor-chip.ativo {
+    background: #22a848;
+    border-color: #22a848;
+    color: #ffffff;
+}
+
+.campo-label {
     display: block;
-    text-align: center;
-    padding: 14px 0;
-    border: 2px solid #d0d5dd;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 16px;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-/* Quando o radio está marcado, o cartão fica destacado */
-.opcao input[type="radio"]:checked + span {
-    border-color: #2e7d32;
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555555;
+    margin-bottom: 6px;
+    margin-top: 12px;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="number"] {
     width: 100%;
-    padding: 10px;
-    border: 2px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-/* O campo de valor personalizado fica um pouco maior e em destaque */
-#valor_personalizado {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="number"]:focus {
+    padding: 12px 14px;
+    border: 1.5px solid #d0d7d2;
+    border-radius: 10px;
+    font-size: 15px;
     outline: none;
-    border-color: #2e7d32;
+    transition: border-color 0.2s ease;
 }
 
-hr {
-    border: none;
-    border-top: 1px solid #e0e0e0;
-    margin: 14px 0;
+input:focus {
+    border-color: #22a848;
 }
 
-.botao-doar {
+.dados-doador {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 10px 0 20px;
+}
+
+.btn-principal {
     width: 100%;
-    padding: 14px;
-    margin-top: 16px;
-    background-color: #2e7d32;
+    padding: 14px 20px;
+    background: #22a848;
     color: #ffffff;
-    font-size: 16px;
-    font-weight: bold;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.botao-doar:hover {
-    background-color: #256428;
+.btn-principal:hover:not(:disabled) {
+    background: #188a38;
+    transform: translateY(-1px);
 }
 
-/* ===== Abas de forma de pagamento (100% CSS, sem JavaScript) ===== */
-
-.bloco-pagamento {
-    position: relative;
+.btn-principal:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
-/* Esconde os radio buttons que controlam as abas — eles continuam
-   funcionando normalmente, só não aparecem na tela */
-.aba-radio {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
+/* =========================
+   ETAPA 2: PIX E CARTÃO
+========================= */
+.resumo-etapa2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f5f7f6;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+
+.resumo-etapa2 strong {
+    color: #22a848;
+    font-size: 1.2rem;
 }
 
 .abas-pagamento {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    margin-bottom: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
 }
 
-.aba-botao {
+.aba-btn {
+    padding: 12px;
+    border: 2px solid #d8e2dc;
+    background: #f8f9fa;
+    color: #444;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.aba-btn.ativo {
+    border-color: #22a848;
+    background: #e8f8eb;
+    color: #176d28;
+}
+
+.painel-metodo {
+    display: none;
+}
+
+.painel-metodo.ativo {
     display: block;
+}
+
+.pix-box {
     text-align: center;
-    padding: 10px 4px;
-    border: 2px solid #d0d5dd;
-    border-radius: 8px;
-    background-color: #ffffff;
+    background: #f9fbf9;
+    border: 1px solid #dfece1;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.pix-instrucao {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 14px;
+}
+
+.qr-wrapper {
+    background: #ffffff;
+    display: inline-block;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 14px;
+}
+
+.qr-wrapper img {
+    width: 190px;
+    height: 190px;
+    display: block;
+}
+
+.copia-cola-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.copia-cola-row input {
+    font-size: 12px;
+    background: #f0f2f1;
+    color: #555;
+}
+
+.btn-copiar {
+    padding: 0 16px;
+    background: #176d28;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.auth-box {
+    border-top: 1px dashed #cde0d0;
+    padding-top: 14px;
+}
+
+.auth-box p {
     font-size: 13px;
-    font-weight: bold;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.tipo-cartao-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.tipo-btn {
+    padding: 9px;
+    border: 1.5px solid #d0d7d2;
+    background: #fff;
+    border-radius: 8px;
+    font-weight: 700;
     color: #555;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
-/* Todo o conteúdo das abas fica escondido por padrão */
-.conteudo-aba {
-    display: none;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 8px;
-}
-
-/* Quando o radio de uma aba está marcado, destaca o botão dela... */
-#tab-cartao:checked ~ .abas-pagamento label[for="tab-cartao"],
-#tab-pix:checked ~ .abas-pagamento label[for="tab-pix"] {
-    border-color: #2e7d32;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-/* ...e mostra o conteúdo correspondente a essa aba */
-#tab-cartao:checked ~ #aba-cartao,
-#tab-pix:checked ~ #aba-pix {
-    display: block;
+.tipo-btn.ativo {
+    border-color: #22a848;
+    background: #e8f8eb;
+    color: #176d28;
 }
 
 .linha-dupla {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.status-autenticacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #e8f8eb;
+    color: #176d28;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 16px;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #b7e4c0;
+    border-top-color: #176d28;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
+.btn-voltar-etapa {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    background: transparent;
+    color: #666666;
+    border: 1px solid #d5d5d5;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-voltar-etapa:hover:not(:disabled) {
+    background: #f4f4f4;
+}
+
+/* =========================
+   ETAPA 3: COMPROVANTE
+========================= */
+.sucesso-box {
+    text-align: center;
+}
+
+.sucesso-icone {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #22a848;
+    color: #ffffff;
+    font-size: 34px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(34, 168, 72, 0.35);
+}
+
+.sucesso-box h2 {
+    color: #1e7e34;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+}
+
+.sucesso-sub {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.comprovante-detalhes {
+    background: #f7faf7;
+    border: 1px solid #d9ecd9;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.comp-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px dashed #dce6dd;
+    font-size: 14px;
+}
+
+.comp-linha:last-child {
+    border-bottom: none;
+}
+
+.comp-linha span {
+    color: #666;
+}
+
+.comp-linha strong {
+    color: #2d2d2d;
+    text-align: right;
+}
+
+.comp-linha strong.valor-destaque {
+    color: #22a848;
+    font-size: 1.05rem;
+}
+
+.acoes-finais {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
 }
 
-/* ===== Escolha entre Crédito e Débito (dentro da aba Cartão) ===== */
-
-.rotulo-tipo-cartao {
-    display: block;
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: 6px;
-    color: #333;
-}
-
-.tipo-cartao {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.tipo-cartao-opcao {
-    position: relative;
-}
-
-.tipo-cartao-opcao input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.tipo-cartao-opcao span {
-    display: block;
-    text-align: center;
-    padding: 8px 0;
-    border: 2px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #555;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tipo-cartao-opcao input[type="radio"]:checked + span {
-    border-color: #2e7d32;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.texto-info {
-    color: #555;
-    font-size: 13px;
-    line-height: 1.4;
-    margin: 0;
-}
-
-/* ===== QR Code Pix (mostrado na página de confirmação) ===== */
-
-.bloco-pix-qr {
-    text-align: center;
-}
-
-.qr-code-imagem {
-    display: block;
-    margin: 0 auto 15px auto;
-    border: 2px solid #d0d5dd;
-    border-radius: 10px;
-    padding: 8px;
-    background-color: #ffffff;
-}
-
-.pix-copia-cola {
+.btn-secundario {
     width: 100%;
-    resize: none;
-    height: 70px;
-    padding: 10px;
-    border: 2px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 12px;
-    font-family: monospace;
-    color: #333;
-    background-color: #f8f9fa;
-    margin-bottom: 6px;
+    padding: 13px 20px;
+    background: #eef3ef;
+    color: #1e7e34;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.btn-secundario:hover {
+    background: #dfeae1;
+}
+
+@media (max-width: 520px) {
+    .checkout-card {
+        padding: 22px 18px;
+    }
+
+    .opcoes-valor {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dados-doador,
+    .linha-dupla {
+        grid-template-columns: 1fr;
+    }
 }

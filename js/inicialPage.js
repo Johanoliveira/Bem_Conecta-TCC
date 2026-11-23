@@ -117,17 +117,30 @@ function criarPost(post, container) {
             </button>`
         : "";
 
+    const fotoONG = (post.fotoONG && String(post.fotoONG).trim() !== "")
+        ? String(post.fotoONG).trim()
+        : "../img/jpg/ftPerfil.jpg";
+
     article.innerHTML = `
-        <div class="post-header">
-           <div class="post-header" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                <div>
-                    <a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
-                        ${escaparHTML(post.nomeONG)}
-                    </a>
+        <div class="post-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <a href="perfilONG.php?idONG=${post.idONG}" style="display: flex; flex-shrink: 0;">
+                    <img
+                        src="${escaparHTML(fotoONG)}"
+                        alt="Foto de ${escaparHTML(post.nomeONG)}"
+                        onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
+                    >
+                </a>
+                <div style="display: flex; flex-direction: column;">
+                    <h3>
+                        <a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
+                            ${escaparHTML(post.nomeONG)}
+                        </a>
+                    </h3>
                     <span>${data}</span>
                 </div>
-                ${botaoExcluirHTML}
             </div>
+            ${botaoExcluirHTML}
         </div>
 
         <img

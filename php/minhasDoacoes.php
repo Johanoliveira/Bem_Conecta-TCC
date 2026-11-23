@@ -7,40 +7,52 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 
-$idUsuario = (int) $_SESSION["usuario_id"];
-$nome = $_SESSION["usuario_nome"] ?? "Usuário";
-$foto = $_SESSION["usuario_foto"] ?? "img/jpg/ftPerfil.jpg";
+$idMUsuario = (int) $_SESSION["usuario_id"];
 
-$sqlDoacoes = "
+$doacoes = [];
+$totalDoado = 0.0;
+$quantidadeDoacoes = 0;
+
+$sql = "
     SELECT
         d.idDoacao,
+        d.idCampanha,
         d.valor,
         d.dataDoacao,
-        c.idCampanha,
-        c.titulo AS tituloCampanha,
-        muOng.nome AS nomeONG
+        c.titulo AS nomeCampanha,
+        o.idONG,
+        mu.nome AS nomeONG,
+        mu.fotoPerfil AS fotoONG
     FROM doacoes d
     INNER JOIN UsuarioComum uc ON d.idUsuarioComum = uc.idUsuarioComum
     INNER JOIN campanhas c ON d.idCampanha = c.idCampanha
     INNER JOIN ONGs o ON c.idONG = o.idONG
-    INNER JOIN MoldeUsuario muOng ON o.idMoldeUsuario = muOng.idMUsuario
+    INNER JOIN MoldeUsuario mu ON o.idMoldeUsuario = mu.idMUsuario
     WHERE uc.idMoldeUsuario = ?
-    ORDER BY d.dataDoacao DESC
+    ORDER BY d.dataDoacao DESC, d.idDoacao DESC
 ";
 
-$stmt = $conexao->prepare($sqlDoacoes);
-$stmt->bind_param("i", $idUsuario);
-$stmt->execute();
-$resultado = $stmt->get_result();
+$stmt = $conexao->prepare($sql);
+if ($stmt) {
+    $stmt->bind_param("i", $idMUsuario);
+    $stmt->execute();
+    $res = $stmt->get_result();
 
-$listaDoacoes = [];
-$totalDoado = 0.0;
+    while ($row = $res->fetch_assoc()) {
+        $fotoOng = trim((string) ($row["fotoONG"] ?? ""));
+        if ($fotoOng === "" || in_array($fotoOng, ["perfil.png", "img/perfil/perfil.png"], true)) {
+            $fotoOng = "../img/jpg/ftPerfil.jpg";
+        } elseif (!str_starts_with($fotoOng, "../") && !str_starts_with($fotoOng, "http://") && !str_starts_with($fotoOng, "https://")) {
+            $fotoOng = "../" . ltrim($fotoOng, "/");
+        }
+        $row["fotoONG_url"] = $fotoOng;
 
-while ($row = $resultado->fetch_assoc()) {
-    $listaDoacoes[] = $row;
-    $totalDoado += (float) $row["valor"];
+        $doacoes[] = $row;
+        $totalDoado += (float) $row["valor"];
+        $quantidadeDoacoes++;
+    }
+    $stmt->close();
 }
-$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -48,114 +60,81 @@ $stmt->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Doações - Bem Conecta</title>
-    <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/minhasDoacoes.css?v=4">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <style>
-        .resumo-doacoes {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-        .card-resumo {
-            flex: 1;
-            min-width: 200px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-        .card-resumo span {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        .card-resumo h3 {
-            color: #1b9e2a;
-            font-size: 1.6rem;
-            margin-top: 6px;
-        }
-        .lista-doacoes {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .item-doacao {
-            background: #fff;
-            padding: 18px 22px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .valor-badge {
-            background: #e8f8eb;
-            color: #1b9e2a;
-            font-weight: bold;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 1.05rem;
-        }
-    </style>
 </head>
 <body>
 <?php require_once "header.php"; ?>
 
-<div class="layout-com-sidebar">
+<div class="layout-doacoes">
     <?php require_once "sidebar.php"; ?>
 
-    <main class="feed">
-        <section class="welcome-card">
-            <h2>Minhas Doações</h2>
-            <p>Acompanhe todas as contribuições que você já realizou pelo Bem Conecta.</p>
+    <div class="layout-doacoes">
+    <?php require_once "sidebar.php"; ?>
+
+    <main class="conteudo-doacoes">
+        <section class="banner-doacoes">
+            <h1>💚 Minhas Doações</h1>
+            <p>Acompanhe todas as contribuições que você já realizou pelo Bem Conecta. ✨</p>
         </section>
 
-        <div class="resumo-doacoes">
-            <div class="card-resumo">
-                <span>Total Doado</span>
-                <h3>R$ <?php echo number_format($totalDoado, 2, ',', '.'); ?></h3>
+        <!-- CARDS DE RESUMO EM LIQUID GLASS -->
+        <section class="resumo-grid">
+            <div class="card-resumo glass-card">
+                <span class="resumo-label">💰 Total Doado</span>
+                <strong class="resumo-valor resumo-valor-destaque">R$ <?php echo number_format($totalDoado, 2, ',', '.'); ?></strong>
             </div>
-            <div class="card-resumo">
-                <span>Quantidade de Doações</span>
-                <h3><?php echo count($listaDoacoes); ?></h3>
-            </div>
-        </div>
 
-        <div class="lista-doacoes">
-            <?php if (empty($listaDoacoes)): ?>
-                <div class="item-doacao">
-                    <div>
-                        <h3>Você ainda não realizou nenhuma doação</h3>
-                        <p>Explore as campanhas ativas e apoie uma causa social.</p>
-                    </div>
-                    <a href="campanhas.php" class="donate-btn" style="text-decoration:none;">Ver Campanhas</a>
+            <div class="card-resumo glass-card">
+                <span class="resumo-label">🎁 Quantidade de Doações</span>
+                <strong class="resumo-valor"><?php echo (int) $quantidadeDoacoes; ?></strong>
+            </div>
+        </section>
+
+        <!-- HISTÓRICO DE DOAÇÕES -->
+        <section class="lista-doacoes">
+            <?php if (empty($doacoes)): ?>
+                <div class="card-doacao vazio">
+                    <h3>🌱 Nenhuma doação realizada ainda</h3>
+                    <p>Explore as campanhas e apoie causas sociais pelo Bem Conecta.</p>
+                    <a href="campanhas.php" class="btn-doar-novamente">🚀 Ver Campanhas</a>
                 </div>
             <?php else: ?>
-                <?php foreach ($listaDoacoes as $doacao): ?>
-                    <div class="item-doacao">
-                        <div>
-                            <h3><?php echo htmlspecialchars($doacao["tituloCampanha"]); ?></h3>
-                            <p>ONG: <strong><?php echo htmlspecialchars($doacao["nomeONG"]); ?></strong></p>
-                            <small>Data: <?php echo date("d/m/Y H:i", strtotime($doacao["dataDoacao"])); ?></small>
+                <?php foreach ($doacoes as $doacao): ?>
+                    <article class="card-doacao">
+                        <div class="doacao-esq">
+                            <img
+                                src="<?php echo htmlspecialchars($doacao["fotoONG_url"], ENT_QUOTES, 'UTF-8'); ?>"
+                                alt="Foto da ONG <?php echo htmlspecialchars($doacao["nomeONG"], ENT_QUOTES, 'UTF-8'); ?>"
+                                class="foto-ong-doacao"
+                            >
+                            <div class="doacao-info">
+                                <h3>🎯 <?php echo htmlspecialchars($doacao["nomeCampanha"]); ?></h3>
+                                <p class="nome-ong-direto">🏛️ <?php echo htmlspecialchars($doacao["nomeONG"]); ?></p>
+                                <span class="data-doacao">
+                                    🕒 Data: <?php echo date("d/m/Y H:i", strtotime($doacao["dataDoacao"])); ?>
+                                </span>
+                            </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <span class="valor-badge">
-                                R$ <?php echo number_format((float) $doacao["valor"], 2, ',', '.'); ?>
+
+                        <div class="doacao-dir">
+                            <span class="badge-valor">
+                                💵 R$ <?php echo number_format((float) $doacao["valor"], 2, ',', '.'); ?>
                             </span>
-                            <a href="../html/pagamento.html?idCampanha=<?php echo (int) $doacao["idCampanha"]; ?>"
-                               class="donate-btn"
-                               style="text-decoration:none;">
-                                Doar Novamente
+                            <a
+                                href="../html/pagamento.html?idCampanha=<?php echo (int) $doacao["idCampanha"]; ?>"
+                                class="btn-doar-novamente"
+                            >
+                                💚 Doar Novamente
                             </a>
                         </div>
-                    </div>
+                    </article>
                 <?php endforeach; ?>
             <?php endif; ?>
-        </div>
+        </section>
     </main>
+</div>
 </div>
 </body>
 </html>

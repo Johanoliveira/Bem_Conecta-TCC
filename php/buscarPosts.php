@@ -16,15 +16,16 @@ try {
 
     $sql = "
         SELECT
-        p.idPost,
-        p.idONG,
-        p.idCampanha,
-        mu.nome AS nomeONG,
-        p.titulo,
-        p.conteudo,
-        p.descricao,
-        p.palavrasChave,
-        p.dataPublicacao
+            p.idPost,
+            p.idONG,
+            p.idCampanha,
+            mu.nome AS nomeONG,
+            mu.fotoPerfil AS fotoONG,
+            p.titulo,
+            p.conteudo,
+            p.descricao,
+            p.palavrasChave,
+            p.dataPublicacao
         FROM posts p
         INNER JOIN ONGs o
             ON p.idONG = o.idONG
@@ -40,12 +41,21 @@ try {
     $resultado = $conexao->query($sql);
 
     if (!$resultado) {
-        throw new Exception("Erro ao consultar as publicações.");
+        throw new Exception("Erro ao consultar as publicações: " . $conexao->error);
     }
 
     $posts = [];
 
     while ($post = $resultado->fetch_assoc()) {
+        $fotoOng = trim((string) ($post["fotoONG"] ?? ""));
+
+        if ($fotoOng === "" || in_array($fotoOng, ["perfil.png", "img/perfil/perfil.png"], true)) {
+            $fotoOng = "../img/jpg/ftPerfil.jpg";
+        } elseif (!str_starts_with($fotoOng, "../") && !str_starts_with($fotoOng, "http://") && !str_starts_with($fotoOng, "https://")) {
+            $fotoOng = "../" . ltrim($fotoOng, "/");
+        }
+
+        $post["fotoONG"] = $fotoOng;
         $posts[] = $post;
     }
 
@@ -55,12 +65,11 @@ try {
     );
 
 } catch (Throwable $e) {
-
     error_log("Erro em buscarPosts.php: " . $e->getMessage());
-
     http_response_code(500);
 
     echo json_encode([
-        "erro" => "Erro ao buscar os posts."
+        "erro" => "Erro ao buscar os posts.",
+        "detalhe" => $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }

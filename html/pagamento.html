@@ -1,147 +1,603 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faça sua Doação</title>
-    <link rel="stylesheet" href="../css/pagamento.css">
+    <title>Doação - Bem Conecta</title>
+    <link rel="stylesheet" href="../css/pagamento.css?v=2">
 </head>
 <body>
 
-    <div class="container">
+    <div class="checkout-wrapper">
+        <a href="javascript:history.back()" class="voltar-topo">← Voltar</a>
 
-        <div class="cabecalho">
-            <h1>💙 Ajude Nossa Causa</h1>
-            <p>Sua doação faz a diferença na vida de muitas pessoas.</p>
-        </div>
+        <main class="checkout-card">
 
-        <!-- O formulário envia os dados para o arquivo processar.php -->
-        <form action="../php/pagamento.php" method="POST">
-
-            <input type="hidden" name="idPost" id="inputIdPost" value="">
-            <input type="hidden" name="idCampanha" id="inputIdCampanha" value="">
-
-            <label class="titulo-secao">Escolha o valor da doação:</label>
-
-            <!-- Botões de valor fixo (radio buttons estilizados como cartões) -->
-            <div class="opcoes-valor">
-
-                <label class="opcao">
-                    <input type="radio" name="valor_escolhido" value="5">
-                    <span>R$ 5</span>
-                </label>
-
-                <label class="opcao">
-                    <input type="radio" name="valor_escolhido" value="10" checked>
-                    <span>R$ 10</span>
-                </label>
-
-                <label class="opcao">
-                    <input type="radio" name="valor_escolhido" value="15">
-                    <span>R$ 15</span>
-                </label>
-
+            <!-- INDICADOR DE ETAPAS -->
+            <div class="stepper" aria-label="Etapas da doação">
+                <div class="step-item ativo" data-step="1">
+                    <span class="step-circulo">1</span>
+                    <span class="step-nome">Valor</span>
+                </div>
+                <div class="step-linha" id="linha-1-2"></div>
+                <div class="step-item" data-step="2">
+                    <span class="step-circulo">2</span>
+                    <span class="step-nome">Pagamento</span>
+                </div>
+                <div class="step-linha" id="linha-2-3"></div>
+                <div class="step-item" data-step="3">
+                    <span class="step-circulo">3</span>
+                    <span class="step-nome">Concluído</span>
+                </div>
             </div>
 
-            <!-- Campo para valor personalizado. Se a pessoa digitar aqui,
-                 o processar.php dá prioridade a este valor sobre o radio acima. -->
-            <label class="titulo-secao" for="valor_personalizado">Ou digite outro valor:</label>
-            <input
-                type="number"
-                id="valor_personalizado"
-                name="valor_personalizado"
-                placeholder="Ex: 25.00"
-                min="1"
-                step="0.01"
-            >
+            <!-- CABEÇALHO COM FOTO DA ONG E NOME DA CAMPANHA (SE HOUVER) -->
+            <div class="destino-box" id="destinoBox">
+                <img id="ongFoto" src="../img/jpg/ftPerfil.jpg" alt="Foto da ONG">
+                <div class="destino-info">
+                    <span class="destino-label">Você está apoiando</span>
+                    <h2 id="ongNome">Carregando organização...</h2>
+                    <p class="campanha-badge" id="campanhaNome" style="display: none;"></p>
+                </div>
+            </div>
 
-            <hr>
+            <!-- SELETOR EXTRA APENAS SE O USUÁRIO ABRIU O PAGAMENTO SEM LINK ESPECÍFICO -->
+            <div class="seletor-destino" id="seletorDestinoWrapper" style="display: none;">
+                <label for="selectDestino">Escolha a campanha ou ONG:</label>
+                <select id="selectDestino"></select>
+            </div>
 
-            <label class="titulo-secao">Seus dados:</label>
+            <!-- MENSAGEM DE ERRO -->
+            <div class="alerta-erro" id="alertaErro" style="display: none;"></div>
 
-            <label for="nome">Nome completo</label>
-            <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
+            <!-- ==========================================
+                 ETAPA 1: ESCOLHA DO VALOR E DADOS DO DOADOR
+            ========================================== -->
+            <section class="etapa-conteudo ativo" id="etapa-1">
+                <label class="titulo-secao">Quanto você deseja doar?</label>
 
-            <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
-
-            <hr>
-
-            <label class="titulo-secao">Forma de pagamento:</label>
-
-            <!-- ====================================================
-                 ABAS SEM JAVASCRIPT
-                 Truque: usamos radio buttons escondidos (um para cada
-                 aba) + labels estilizados como botões. O CSS mostra o
-                 conteúdo certo usando o seletor :checked. O valor do
-                 radio marcado ("cartao" ou "pix") é o que chega no
-                 PHP em $_POST['forma_pagamento'].
-                 ==================================================== -->
-            <div class="bloco-pagamento">
-
-                <!-- Radios escondidos que controlam qual aba aparece -->
-                <input type="radio" id="tab-cartao" class="aba-radio" name="forma_pagamento" value="cartao" checked>
-                <input type="radio" id="tab-pix" class="aba-radio" name="forma_pagamento" value="pix">
-
-                <!-- Botões visuais das abas (na verdade são labels dos radios acima) -->
-                <div class="abas-pagamento">
-                    <label for="tab-cartao" class="aba-botao">💳 Cartão</label>
-                    <label for="tab-pix" class="aba-botao">📱 Pix</label>
+                <div class="opcoes-valor">
+                    <button type="button" class="valor-chip" data-valor="10">R$ 10</button>
+                    <button type="button" class="valor-chip ativo" data-valor="25">R$ 25</button>
+                    <button type="button" class="valor-chip" data-valor="50">R$ 50</button>
+                    <button type="button" class="valor-chip" data-valor="100">R$ 100</button>
                 </div>
 
-                <!-- Conteúdo da aba: Cartão de Crédito -->
-                <div class="conteudo-aba" id="aba-cartao">
-                    <!-- Escolha entre Crédito e Débito (radio + label, sem JS) -->
-                    <label class="rotulo-tipo-cartao">Tipo do cartão:</label>
-                    <div class="tipo-cartao">
-                        <label class="tipo-cartao-opcao">
-                            <input type="radio" name="tipo_cartao" value="credito" checked>
-                            <span>Crédito</span>
-                        </label>
-                        <label class="tipo-cartao-opcao">
-                            <input type="radio" name="tipo_cartao" value="debito">
-                            <span>Débito</span>
-                        </label>
+                <label class="campo-label" for="valorPersonalizado">Ou digite outro valor (R$)</label>
+                <input
+                    type="number"
+                    id="valorPersonalizado"
+                    placeholder="Ex: 35,00"
+                    min="1"
+                    step="0.01"
+                >
+
+                <div class="dados-doador">
+                    <div>
+                        <label class="campo-label" for="doadorNome">Seu nome</label>
+                        <input type="text" id="doadorNome" placeholder="Nome completo" required>
+                    </div>
+                    <div>
+                        <label class="campo-label" for="doadorEmail">Seu e-mail</label>
+                        <input type="email" id="doadorEmail" placeholder="seuemail@exemplo.com" required>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-principal" id="btnIrEtapa2">
+                    Continuar para Pagamento →
+                </button>
+            </section>
+
+            <!-- ==========================================
+                 ETAPA 2: FORMA DE PAGAMENTO + AUTENTICAÇÃO
+            ========================================== -->
+            <section class="etapa-conteudo" id="etapa-2">
+                <div class="resumo-etapa2">
+                    <span>Valor da doação:</span>
+                    <strong id="resumoValorEtapa2">R$ 25,00</strong>
+                </div>
+
+                <label class="titulo-secao">Escolha a forma de pagamento:</label>
+
+                <div class="abas-pagamento">
+                    <button type="button" class="aba-btn ativo" data-metodo="pix">📱 Pix</button>
+                    <button type="button" class="aba-btn" data-metodo="cartao">💳 Cartão</button>
+                </div>
+
+                <!-- PAINEL PIX -->
+                <div class="painel-metodo ativo" id="painel-pix">
+                    <div class="pix-box">
+                        <p class="pix-instrucao">
+                            Escaneie o QR Code no aplicativo do seu banco ou copie o código Pix abaixo:
+                        </p>
+
+                        <div class="qr-wrapper">
+                            <img id="pixQrImg" src="" alt="QR Code Pix">
+                        </div>
+
+                        <div class="copia-cola-row">
+                            <input type="text" id="pixCopiaCola" readonly>
+                            <button type="button" id="btnCopiarPix" class="btn-copiar">Copiar</button>
+                        </div>
+
+                        <div class="auth-box">
+                            <p>Após efetuar o Pix no seu banco, clique abaixo para autenticar a transação:</p>
+                            <button type="button" class="btn-principal" id="btnConfirmarPix">
+                                ✓ Já fiz o Pix — Autenticar Pagamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL CARTÃO -->
+                <div class="painel-metodo" id="painel-cartao">
+                    <div class="tipo-cartao-row">
+                        <button type="button" class="tipo-btn ativo" data-tipo="credito">Crédito</button>
+                        <button type="button" class="tipo-btn" data-tipo="debito">Débito</button>
                     </div>
 
-                    <label for="numero_cartao">Número do cartão</label>
-                    <input type="text" id="numero_cartao" name="numero_cartao" placeholder="0000 0000 0000 0000" maxlength="19">
+                    <label class="campo-label" for="numeroCartao">Número do cartão</label>
+                    <input type="text" id="numeroCartao" placeholder="0000 0000 0000 0000" maxlength="19">
 
-                    <label for="nome_cartao">Nome impresso no cartão</label>
-                    <input type="text" id="nome_cartao" name="nome_cartao" placeholder="Como está no cartão">
+                    <label class="campo-label" for="nomeCartao">Nome impresso no cartão</label>
+                    <input type="text" id="nomeCartao" placeholder="Como aparece no cartão">
 
                     <div class="linha-dupla">
                         <div>
-                            <label for="validade_cartao">Validade</label>
-                            <input type="text" id="validade_cartao" name="validade_cartao" placeholder="MM/AA" maxlength="5">
+                            <label class="campo-label" for="validadeCartao">Validade</label>
+                            <input type="text" id="validadeCartao" placeholder="MM/AA" maxlength="5">
                         </div>
                         <div>
-                            <label for="cvv_cartao">CVV</label>
-                            <input type="text" id="cvv_cartao" name="cvv_cartao" placeholder="123" maxlength="4">
+                            <label class="campo-label" for="cvvCartao">CVV</label>
+                            <input type="text" id="cvvCartao" placeholder="123" maxlength="4">
                         </div>
                     </div>
+
+                    <button type="button" class="btn-principal" id="btnConfirmarCartao" style="margin-top: 16px;">
+                        🔒 Autenticar e Finalizar Doação
+                    </button>
                 </div>
 
-                <!-- Conteúdo da aba: Pix -->
-                <div class="conteudo-aba" id="aba-pix">
-                    <p class="texto-info">
-                        Após confirmar, vamos gerar um código Pix (ou QR Code) para você copiar e pagar no app do seu banco.
+                <!-- STATUS DE AUTENTICAÇÃO EM ANDAMENTO -->
+                <div class="status-autenticacao" id="statusAutenticacao" style="display: none;">
+                    <div class="spinner"></div>
+                    <p id="textoAutenticacao">Autenticando pagamento...</p>
+                </div>
+
+                <button type="button" class="btn-voltar-etapa" id="btnVoltarEtapa1">
+                    ← Alterar valor ou dados
+                </button>
+            </section>
+
+            <!-- ==========================================
+                 ETAPA 3: CONFIRMAÇÃO E COMPROVANTE
+            ========================================== -->
+            <section class="etapa-conteudo" id="etapa-3">
+                <div class="sucesso-box">
+                    <div class="sucesso-icone">✓</div>
+                    <h2>Doação Confirmada!</h2>
+                    <p class="sucesso-sub">
+                        Obrigado, <strong id="compDoador"></strong>! Sua contribuição foi autenticada e registrada com sucesso.
                     </p>
+
+                    <div class="comprovante-detalhes">
+                        <div class="comp-linha">
+                            <span>Código da transação</span>
+                            <strong id="compCodigo">-</strong>
+                        </div>
+                        <div class="comp-linha">
+                            <span>Organização apoiada</span>
+                            <strong id="compOng">-</strong>
+                        </div>
+                        <div class="comp-linha" id="compLinhaCampanha" style="display: none;">
+                            <span>Campanha</span>
+                            <strong id="compCampanha">-</strong>
+                        </div>
+                        <div class="comp-linha">
+                            <span>Valor doado</span>
+                            <strong class="valor-destaque" id="compValor">-</strong>
+                        </div>
+                        <div class="comp-linha">
+                            <span>Forma de pagamento</span>
+                            <strong id="compMetodo">-</strong>
+                        </div>
+                        <div class="comp-linha">
+                            <span>Data e hora</span>
+                            <strong id="compData">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="acoes-finais">
+                        <a href="../php/minhasDoacoes.php" class="btn-principal" style="text-decoration: none; text-align: center;">
+                            Ver Minhas Doações
+                        </a>
+                        <a href="../php/inicialPage.php" class="btn-secundario" style="text-decoration: none; text-align: center;">
+                            Voltar ao Início
+                        </a>
+                    </div>
                 </div>
+            </section>
 
-            </div>
-
-            <button type="submit" class="botao-doar">Doar Agora</button>
-
-        </form>
-
+        </main>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        document.getElementById('inputIdPost').value = params.get('idPost') || '';
-        document.getElementById('inputIdCampanha').value = params.get('idCampanha') || '';
-    </script>
+        const state = {
+            idPost: Number(params.get('idPost') || 0),
+            idCampanha: Number(params.get('idCampanha') || 0),
+            idONG: Number(params.get('idONG') || 0),
+            ongNome: '',
+            ongFoto: '../img/jpg/ftPerfil.jpg',
+            campanhaTitulo: '',
+            valor: 25,
+            metodo: 'pix',
+            tipoCartao: 'credito',
+            opcoesDestino: []
+        };
 
+        const alertaErro = document.getElementById('alertaErro');
+
+        function mostrarErro(msg) {
+            alertaErro.textContent = msg;
+            alertaErro.style.display = 'block';
+        }
+
+        function limparErro() {
+            alertaErro.style.display = 'none';
+            alertaErro.textContent = '';
+        }
+
+        function formatarMoeda(v) {
+            return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function atualizarCabecalhoDestino() {
+            document.getElementById('ongFoto').src = state.ongFoto || '../img/jpg/ftPerfil.jpg';
+            document.getElementById('ongNome').textContent = state.ongNome || 'Bem Conecta';
+
+            const badgeCamp = document.getElementById('campanhaNome');
+            if (state.campanhaTitulo && state.campanhaTitulo.trim() !== '') {
+                badgeCamp.textContent = '🎯 Campanha: ' + state.campanhaTitulo;
+                badgeCamp.style.display = 'inline-block';
+            } else {
+                badgeCamp.style.display = 'none';
+            }
+        }
+
+        function irParaEtapa(numero) {
+            limparErro();
+
+            document.querySelectorAll('.etapa-conteudo').forEach(sec => sec.classList.remove('ativo'));
+            document.getElementById('etapa-' + numero).classList.add('ativo');
+
+            document.querySelectorAll('.step-item').forEach(item => {
+                const stepNum = Number(item.dataset.step);
+                item.classList.toggle('ativo', stepNum === numero);
+                item.classList.toggle('concluido', stepNum < numero);
+            });
+
+            document.getElementById('linha-1-2').classList.toggle('ativa', numero >= 2);
+            document.getElementById('linha-2-3').classList.toggle('ativa', numero >= 3);
+
+            // Esconde o seletor na etapa 3
+            if (numero === 3) {
+                document.getElementById('seletorDestinoWrapper').style.display = 'none';
+            }
+        }
+
+        // Carrega os dados da ONG/Campanha e do usuário logado
+        async function inicializarCheckout() {
+            try {
+                const query = new URLSearchParams({
+                    acao: 'info',
+                    idPost: state.idPost,
+                    idCampanha: state.idCampanha,
+                    idONG: state.idONG
+                });
+
+                const res = await fetch('../php/pagamento.php?' + query.toString());
+                const dados = await res.json();
+
+                if (!dados.sucesso) {
+                    if (dados.redirect) {
+                        window.location.href = dados.redirect;
+                        return;
+                    }
+                    mostrarErro(dados.erro || 'Não foi possível carregar os dados.');
+                    return;
+                }
+
+                if (dados.usuario) {
+                    document.getElementById('doadorNome').value = dados.usuario.nome || '';
+                    document.getElementById('doadorEmail').value = dados.usuario.email || '';
+                }
+
+                if (dados.destino) {
+                    state.idCampanha = Number(dados.destino.idCampanha || 0);
+                    state.idONG = Number(dados.destino.idONG || 0);
+                    state.ongNome = dados.destino.nomeONG || '';
+                    state.ongFoto = dados.destino.fotoONG || '../img/jpg/ftPerfil.jpg';
+                    state.campanhaTitulo = dados.destino.tituloCampanha || '';
+                    atualizarCabecalhoDestino();
+                }
+
+                // Se abriu sem parâmetro específico na URL, mostra seletor para poder trocar a campanha/ONG
+                if (state.idPost === 0 && state.idCampanha === 0 && state.idONG === 0 && Array.isArray(dados.opcoesDestino) && dados.opcoesDestino.length > 0) {
+                    state.opcoesDestino = dados.opcoesDestino;
+                    const select = document.getElementById('selectDestino');
+                    select.innerHTML = '';
+
+                    dados.opcoesDestino.forEach((op, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = idx;
+                        opt.textContent = `${op.nomeONG} — ${op.tituloCampanha}`;
+                        select.appendChild(opt);
+                    });
+
+                    document.getElementById('seletorDestinoWrapper').style.display = 'block';
+
+                    select.addEventListener('change', () => {
+                        const escolhida = state.opcoesDestino[Number(select.value)];
+                        if (escolhida) {
+                            state.idCampanha = Number(escolhida.idCampanha);
+                            state.idONG = Number(escolhida.idONG);
+                            state.ongNome = escolhida.nomeONG;
+                            state.ongFoto = escolhida.fotoONG;
+                            state.campanhaTitulo = escolhida.tituloCampanha;
+                            atualizarCabecalhoDestino();
+                        }
+                    });
+                }
+            } catch (e) {
+                mostrarErro('Erro de conexão ao carregar informações da doação.');
+            }
+        }
+
+        // Seleção de valores rápidos
+        const valorChips = document.querySelectorAll('.valor-chip');
+        const inputValorPers = document.getElementById('valorPersonalizado');
+
+        valorChips.forEach(btn => {
+            btn.addEventListener('click', () => {
+                valorChips.forEach(b => b.classList.remove('ativo'));
+                btn.classList.add('ativo');
+                inputValorPers.value = '';
+                state.valor = Number(btn.dataset.valor);
+            });
+        });
+
+        inputValorPers.addEventListener('input', () => {
+            valorChips.forEach(b => b.classList.remove('ativo'));
+            const v = parseFloat(inputValorPers.value.replace(',', '.'));
+            state.valor = isNaN(v) ? 0 : v;
+        });
+
+        // Avançar da Etapa 1 para Etapa 2
+        document.getElementById('btnIrEtapa2').addEventListener('click', async () => {
+            limparErro();
+
+            const nome = document.getElementById('doadorNome').value.trim();
+            const email = document.getElementById('doadorEmail').value.trim();
+
+            if (!state.valor || state.valor < 1) {
+                mostrarErro('Escolha ou digite um valor de pelo menos R$ 1,00.');
+                return;
+            }
+            if (nome === '') {
+                mostrarErro('Por favor, informe seu nome.');
+                return;
+            }
+            if (!email.includes('@')) {
+                mostrarErro('Por favor, informe um e-mail válido.');
+                return;
+            }
+
+            document.getElementById('resumoValorEtapa2').textContent = formatarMoeda(state.valor);
+            irParaEtapa(2);
+            await carregarQrCodePix();
+        });
+
+        // Voltar para Etapa 1
+        document.getElementById('btnVoltarEtapa1').addEventListener('click', () => {
+            irParaEtapa(1);
+        });
+
+        // Alternar abas Pix / Cartão
+        document.querySelectorAll('.aba-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                limparErro();
+                document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativo'));
+                btn.classList.add('ativo');
+
+                state.metodo = btn.dataset.metodo;
+                document.querySelectorAll('.painel-metodo').forEach(p => p.classList.remove('ativo'));
+                document.getElementById('painel-' + state.metodo).classList.add('ativo');
+
+                if (state.metodo === 'pix') {
+                    await carregarQrCodePix();
+                }
+            });
+        });
+
+        // Alternar Crédito / Débito
+        document.querySelectorAll('.tipo-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
+                btn.classList.add('ativo');
+                state.tipoCartao = btn.dataset.tipo;
+            });
+        });
+
+        // Máscaras do Cartão
+        document.getElementById('numeroCartao').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+            e.target.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+        });
+
+        document.getElementById('validadeCartao').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+            if (v.length >= 3) {
+                v = v.slice(0, 2) + '/' + v.slice(2);
+            }
+            e.target.value = v;
+        });
+
+        document.getElementById('cvvCartao').addEventListener('input', e => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        });
+
+        // Gerar QR Code Pix na Etapa 2
+        async function carregarQrCodePix() {
+            try {
+                const res = await fetch(`../php/pagamento.php?acao=gerar_pix&valor=${encodeURIComponent(state.valor)}`);
+                const dados = await res.json();
+                if (dados.sucesso) {
+                    document.getElementById('pixQrImg').src = dados.pixQrCodeUrl;
+                    document.getElementById('pixCopiaCola').value = dados.pixCodigo;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Copiar código Pix
+        document.getElementById('btnCopiarPix').addEventListener('click', async () => {
+            const inputPix = document.getElementById('pixCopiaCola');
+            inputPix.select();
+            try {
+                await navigator.clipboard.writeText(inputPix.value);
+            } catch (_) {
+                document.execCommand('copy');
+            }
+            const btn = document.getElementById('btnCopiarPix');
+            btn.textContent = 'Copiado!';
+            setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+        });
+
+        // Função de autenticação + gravação no banco
+        async function autenticarEGravar(payloadExtra, mensagensEtapas) {
+            limparErro();
+
+            const statusBox = document.getElementById('statusAutenticacao');
+            const statusTexto = document.getElementById('textoAutenticacao');
+            const btnPix = document.getElementById('btnConfirmarPix');
+            const btnCartao = document.getElementById('btnConfirmarCartao');
+            const btnVoltar = document.getElementById('btnVoltarEtapa1');
+
+            btnPix.disabled = true;
+            btnCartao.disabled = true;
+            btnVoltar.disabled = true;
+            statusBox.style.display = 'flex';
+
+            try {
+                // Etapa visual 1 de autenticação
+                statusTexto.textContent = mensagensEtapas[0];
+                await new Promise(r => setTimeout(r, 950));
+
+                // Etapa visual 2 de autenticação
+                statusTexto.textContent = mensagensEtapas[1];
+                await new Promise(r => setTimeout(r, 950));
+
+                const body = {
+                    acao: 'confirmar_doacao',
+                    idPost: state.idPost,
+                    idCampanha: state.idCampanha,
+                    idONG: state.idONG,
+                    valor: state.valor,
+                    nome: document.getElementById('doadorNome').value.trim(),
+                    email: document.getElementById('doadorEmail').value.trim(),
+                    forma_pagamento: state.metodo,
+                    ...payloadExtra
+                };
+
+                const res = await fetch('../php/pagamento.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const dados = await res.json();
+
+                if (!res.ok || !dados.sucesso) {
+                    throw new Error(dados.erro || 'Falha na autenticação do pagamento.');
+                }
+
+                // Preenche Etapa 3 (Comprovante)
+                const comp = dados.comprovante;
+                document.getElementById('compDoador').textContent = comp.doador;
+                document.getElementById('compCodigo').textContent = comp.codigo;
+                document.getElementById('compOng').textContent = state.ongNome;
+                document.getElementById('compValor').textContent = 'R$ ' + comp.valor;
+                document.getElementById('compMetodo').textContent = comp.formaPagamento;
+                document.getElementById('compData').textContent = comp.dataHora;
+
+                if (state.campanhaTitulo && state.campanhaTitulo.trim() !== '') {
+                    document.getElementById('compCampanha').textContent = state.campanhaTitulo;
+                    document.getElementById('compLinhaCampanha').style.display = 'flex';
+                } else {
+                    document.getElementById('compLinhaCampanha').style.display = 'none';
+                }
+
+                irParaEtapa(3);
+            } catch (erro) {
+                mostrarErro(erro.message);
+            } finally {
+                statusBox.style.display = 'none';
+                btnPix.disabled = false;
+                btnCartao.disabled = false;
+                btnVoltar.disabled = false;
+            }
+        }
+
+        // Confirmar Pix
+        document.getElementById('btnConfirmarPix').addEventListener('click', () => {
+            autenticarEGravar({}, [
+                'Consultando recebedor Pix no Banco Central...',
+                'Pagamento Pix autenticado! Registrando doação...'
+            ]);
+        });
+
+        // Confirmar Cartão
+        document.getElementById('btnConfirmarCartao').addEventListener('click', () => {
+            const numero = document.getElementById('numeroCartao').value.replace(/\D/g, '');
+            const nomeCartao = document.getElementById('nomeCartao').value.trim();
+            const validade = document.getElementById('validadeCartao').value.trim();
+            const cvv = document.getElementById('cvvCartao').value.replace(/\D/g, '');
+
+            if (numero.length < 13) {
+                mostrarErro('Digite um número de cartão válido (mínimo 13 dígitos).');
+                return;
+            }
+            if (nomeCartao === '') {
+                mostrarErro('Informe o nome impresso no cartão.');
+                return;
+            }
+            if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(validade)) {
+                mostrarErro('Informe uma validade válida no formato MM/AA.');
+                return;
+            }
+            if (cvv.length < 3) {
+                mostrarErro('Informe o código de segurança (CVV) do cartão.');
+                return;
+            }
+
+            autenticarEGravar(
+                {
+                    tipo_cartao: state.tipoCartao,
+                    numero_cartao: numero,
+                    nome_cartao: nomeCartao,
+                    validade_cartao: validade,
+                    cvv_cartao: cvv
+                },
+                [
+                    'Autenticando cartão com a operadora...',
+                    'Transação autorizada! Registrando doação...'
+                ]
+            );
+        });
+
+        inicializarCheckout();
+    </script>
 </body>
 </html>

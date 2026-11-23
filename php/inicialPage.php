@@ -163,6 +163,6 @@ if ($resDestaques) {
     </aside>
 
 </div>
-<script src="../js/inicialPage.js?v=8"></script>
+<script src="../js/inicialPage.js?v=9"></script>
 </body>
 </html>
