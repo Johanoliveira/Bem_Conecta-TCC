@@ -92,6 +92,7 @@ async function carregarPosts() {
 function criarPost(post, container) {
     const article = document.createElement("article");
     article.classList.add("post-card");
+    article.id = `post-${post.idPost}`;
 
     const data = formatarData(post.dataPublicacao);
 
@@ -436,3 +437,26 @@ document.addEventListener("keydown", function(event) {
 
 // INICIA OS POSTS
 carregarPosts();
+
+// =========================
+// MINIMIZAR CAMPANHAS EM DESTAQUE
+// =========================
+const rightPanel = document.getElementById("rightPanelDestaques");
+const btnMinimizarRight = document.getElementById("btnMinimizarRightPanel");
+
+if (rightPanel && btnMinimizarRight) {
+    function atualizarEstadoRightPanel(minimizada) {
+        rightPanel.classList.toggle("minimizada", minimizada);
+        btnMinimizarRight.textContent = minimizada ? "◀" : "▶";
+        btnMinimizarRight.title = minimizada ? "Expandir destaques" : "Minimizar destaques";
+    }
+
+    const estadoRightSalvo = localStorage.getItem("bemconecta_rightpanel_minimizada") === "true";
+    atualizarEstadoRightPanel(estadoRightSalvo);
+
+    btnMinimizarRight.addEventListener("click", () => {
+        const novoEstado = !rightPanel.classList.contains("minimizada");
+        atualizarEstadoRightPanel(novoEstado);
+        localStorage.setItem("bemconecta_rightpanel_minimizada", String(novoEstado));
+    });
+}

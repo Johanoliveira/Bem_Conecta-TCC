@@ -283,7 +283,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Bem Conecta</title>
 
-    <link rel="stylesheet" href="../css/perfil.css?v=6">
+    <link rel="stylesheet" href="../css/perfil.css?v=10">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">

@@ -11,7 +11,6 @@ require_once __DIR__ . "/../php/conexao.php";
 $nome = $_SESSION["usuario_nome"];
 $foto = $_SESSION["usuario_foto"];
 
-
 $nivelDeSeguranca = 1;
 $idOngLogada = 0;
 
@@ -45,78 +44,38 @@ if ($stmtNivel) {
     $stmtNivel->close();
 }
 
-
-// Indicadores padrão
-$totalDoado = 0;
-$campanhasApoiadas = 0;
-$ongsFavoritas = 0;
-
-// Busca os indicadores do usuário conectado
-$sql = "
+// Busca os 5 posts com mais curtidas para o painel "Campanhas em Destaque"
+$postsDestaque = [];
+$sqlDestaques = "
     SELECT
-        COALESCE((
-            SELECT SUM(d.valor)
-            FROM doacoes d
-            INNER JOIN UsuarioComum uc
-                ON uc.idUsuarioComum = d.idUsuarioComum
-            WHERE uc.idMoldeUsuario = ?
-        ), 0) AS totalDoado,
-
-        (
-            SELECT COUNT(DISTINCT d.idCampanha)
-            FROM doacoes d
-            INNER JOIN UsuarioComum uc
-                ON uc.idUsuarioComum = d.idUsuarioComum
-            WHERE uc.idMoldeUsuario = ?
-        ) AS campanhasApoiadas,
-
-        (
-            SELECT COUNT(*)
-            FROM favoritos f
-            INNER JOIN UsuarioComum uc
-                ON uc.idUsuarioComum = f.idUsuarioComum
-            WHERE uc.idMoldeUsuario = ?
-        ) AS ongsFavoritas
+        p.idPost,
+        p.idONG,
+        p.idCampanha,
+        p.titulo,
+        p.conteudo,
+        mu.nome AS nomeONG,
+        (SELECT COUNT(*) FROM curtidas cu WHERE cu.idPost = p.idPost) AS totalCurtidas
+    FROM posts p
+    INNER JOIN ONGs o ON p.idONG = o.idONG
+    INNER JOIN MoldeUsuario mu ON o.idMoldeUsuario = mu.idMUsuario
+    ORDER BY totalCurtidas DESC, p.dataPublicacao DESC
+    LIMIT 5
 ";
 
-$stmt = $conexao->prepare($sql);
-
-if ($stmt) {
-    $usuarioId = (int) $_SESSION["usuario_id"];
-
-    $stmt->bind_param(
-        "iii",
-        $usuarioId,
-        $usuarioId,
-        $usuarioId
-    );
-
-    if ($stmt->execute()) {
-        $resultado = $stmt->get_result();
-        $dados = $resultado->fetch_assoc();
-
-        if ($dados) {
-            $totalDoado = (float) $dados["totalDoado"];
-            $campanhasApoiadas = (int) $dados["campanhasApoiadas"];
-            $ongsFavoritas = (int) $dados["ongsFavoritas"];
-        }
-    } else {
-        error_log("Erro ao consultar indicadores: " . $stmt->error);
+$resDestaques = $conexao->query($sqlDestaques);
+if ($resDestaques) {
+    while ($rowDest = $resDestaques->fetch_assoc()) {
+        $postsDestaque[] = $rowDest;
     }
-
-    $stmt->close();
-
-    
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bem Conecta - Início</title>
-    <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/inicialPage.css?v=8">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
 </head>
@@ -132,67 +91,78 @@ if ($stmt) {
 <!-- CONTEÚDO -->
 <div class="layout">
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR ESQUERDA -->
     <?php require_once "sidebar.php"; ?>
 
-    <!-- FEED -->
+    <!-- FEED CENTRAL -->
     <main class="feed">
+        <section class="welcome-card">
+            <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
 
-    
-<section class="welcome-card">
-    <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
+            <p>
+                Veja as campanhas mais recentes e continue apoiando
+                projetos sociais que transformam vidas.
+            </p>
 
-    <p>
-        Veja as campanhas mais recentes e continue apoiando
-        projetos sociais que transformam vidas.
-    </p>
+            <?php if ($nivelDeSeguranca !== 1): ?>
+                <a href="criarPost.php" class="create-post-btn">
+                    + Criar post
+                </a>
+            <?php endif; ?>
+        </section>
 
-    <?php if ($nivelDeSeguranca !== 1): ?>
-        <a href="criarPost.php" class="create-post-btn">
-            + Criar post
-        </a>
-    <?php endif; ?>
-</section>
-
-
-    <section class="posts" aria-label="Publicações">
-        <div id="posts-container"></div>
-    </section>
-
+        <section class="posts" aria-label="Publicações">
+            <div id="posts-container"></div>
+        </section>
     </main>
 
-    <!-- LATERAL DIREITA -->
-    <aside class="right-panel">
-    <div class="sidebar-card">
-        <h3>Campanhas em Destaque</h3>
+    <!-- LATERAL DIREITA (TOP 5 MAIS CURTIDOS) -->
+    <aside class="right-panel" id="rightPanelDestaques">
+        <div class="sidebar-card">
+            <div class="right-panel-topo">
+                <button
+                    type="button"
+                    class="btn-minimizar-sidebar"
+                    id="btnMinimizarRightPanel"
+                    title="Minimizar destaques"
+                >▶</button>
+                <h3>Campanhas em Destaque</h3>
+            </div>
 
-        <div class="campaign">
-        <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=80&h=80&fit=crop" alt="Campanha">
-        <div>
-            <strong>Água para Todos</strong>
-            <p>72% da meta alcançada</p>
+            <?php if (empty($postsDestaque)): ?>
+                <p style="color: rgba(255,255,255,0.82); font-size: 0.9rem;">
+                    Nenhuma publicação em destaque no momento.
+                </p>
+            <?php else: ?>
+                <?php foreach ($postsDestaque as $dest): ?>
+                    <?php
+                        $imgDest = !empty($dest["conteudo"]) ? $dest["conteudo"] : "../img/jpg/holder.jpg";
+                        $qtdCurtidas = (int) $dest["totalCurtidas"];
+                        $linkDest = !empty($dest["idCampanha"])
+                            ? "campanha.php?idCampanha=" . (int) $dest["idCampanha"]
+                            : "#post-" . (int) $dest["idPost"];
+                    ?>
+                    <a
+                        href="<?php echo htmlspecialchars($linkDest, ENT_QUOTES, 'UTF-8'); ?>"
+                        class="campaign"
+                        title="<?php echo htmlspecialchars($dest["titulo"] . " (" . $qtdCurtidas . " curtida(s))", ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+                        <img
+                            src="<?php echo htmlspecialchars($imgDest, ENT_QUOTES, 'UTF-8'); ?>"
+                            alt="<?php echo htmlspecialchars($dest["titulo"], ENT_QUOTES, 'UTF-8'); ?>"
+                        >
+                        <div class="campaign-info">
+                            <strong><?php echo htmlspecialchars($dest["titulo"]); ?></strong>
+                            <span><?php echo htmlspecialchars($dest["nomeONG"]); ?></span>
+                            <p>❤️ <?php echo $qtdCurtidas; ?> <?php echo $qtdCurtidas === 1 ? "curtida" : "curtidas"; ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
-        </div>
-
-        <div class="campaign">
-        <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?w=80&h=80&fit=crop" alt="Campanha">
-        <div>
-            <strong>Biblioteca Comunitária</strong>
-            <p>R$ 12.400 arrecadados</p>
-        </div>
-        </div>
-
-        <div class="campaign">
-        <img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?w=80&h=80&fit=crop" alt="Campanha">
-        <div>
-            <strong>Educação que Transforma</strong>
-            <p>Faltam 18 dias</p>
-        </div>
-        </div>
-    </div>
     </aside>
 
 </div>
-<script src="../js/inicialPage.js?v=5"></script>
+<script src="../js/inicialPage.js?v=8"></script>
 </body>
 </html>
