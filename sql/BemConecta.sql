@@ -27,7 +27,7 @@ CREATE TABLE MoldeUsuario (
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
-    fotoPerfil VARCHAR(255),
+    fotoPerfil VARCHAR(255) DEFAULT 'img/jpg/ftPerfil.jpg',
     telefone VARCHAR(11),
     dataCriacao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nivelDeSeguranca int not null DEFAULT 1,

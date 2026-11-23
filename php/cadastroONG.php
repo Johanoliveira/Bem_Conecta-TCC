@@ -16,7 +16,7 @@ $email = $_POST["email"] ?? "";
 $telefone = $_POST["telefone"] ?? "";
 $senha = $_POST["senha"] ?? "";
 $confirmarSenha = $_POST["confirmar-senha"] ?? "";
-$fotoPerfil = null;
+$fotoPerfil = "img/jpg/ftPerfil.jpg";
 
 
 // Verifica se todos os campos foram preenchidos

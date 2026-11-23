@@ -84,9 +84,9 @@ if (!password_verify($senha, $usuario["senha"])) {
 $_SESSION["usuario_id"] = $usuario["idMUsuario"];
 $_SESSION["usuario_nome"] = $usuario["nome"];
 $_SESSION["usuario_email"] = $usuario["email"];
-$_SESSION["usuario_foto"] = $usuario["fotoPerfil"];
-
-
+$_SESSION["usuario_foto"] = !empty($usuario["fotoPerfil"])
+    ? $usuario["fotoPerfil"]
+    : "img/jpg/ftPerfil.jpg";
 // =====================================
 // REDIRECIONA
 // =====================================

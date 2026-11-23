@@ -150,7 +150,7 @@ if ($stmt) {
     </div>
 
     <button class="profile-btn" onclick="window.location.href='perfil.php'">
-        <img src="../php/<?php echo htmlspecialchars($foto); ?>" alt="img/jpg/ftPerfil.jpg">
+        <img src="../<?php echo htmlspecialchars($foto); ?>" alt="Foto de perfil">
         Meu Perfil
     </button>
     </div>
