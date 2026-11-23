@@ -115,7 +115,9 @@ function criarPost(post, container) {
 
            <div class="post-header" style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                    <h3>${escaparHTML(post.nomeONG)}</h3>
+                    <a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
+                        ${escaparHTML(post.nomeONG)}
+                    </a>
                     <span>${data}</span>
                 </div>
                 ${botaoExcluirHTML}

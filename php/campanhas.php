@@ -9,6 +9,17 @@ if (!isset($_SESSION["usuario_id"])) {
 
 $foto = $_SESSION["usuario_foto"] ?? "img/jpg/ftPerfil.jpg";
 
+$idUsuario = (int) $_SESSION["usuario_id"];
+$nivel = 1;
+$stmtNivel = $conexao->prepare("SELECT nivelDeSeguranca FROM MoldeUsuario WHERE idMUsuario = ?");
+if ($stmtNivel) {
+    $stmtNivel->bind_param("i", $idUsuario);
+    $stmtNivel->execute();
+    $resN = $stmtNivel->get_result()->fetch_assoc();
+    $stmtNivel->close();
+    if ($resN) $nivel = (int) $resN["nivelDeSeguranca"];
+}
+
 $sqlCampanhas = "
     SELECT
         c.idCampanha,
@@ -37,6 +48,7 @@ $resultado = $conexao->query($sqlCampanhas);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campanhas - Bem Conecta</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/header.css">
     <style>
         .campanhas-grid {
             display: grid;
@@ -79,29 +91,17 @@ $resultado = $conexao->query($sqlCampanhas);
     </style>
 </head>
 <body>
-<header class="topbar">
-    <div class="logos">
-        <div class="logo-foto"><img src="../img/logo/logo.webp" alt=""></div>
-        <div class="logo-escrita"><img src="../img/logo/escrita.png" alt=""></div>
-    </div>
-    <nav class="menu">
-        <a href="inicialPage.php">Início</a>
-        <a href="campanhas.php">Campanhas</a>
-        <a href="ongs.php">ONGs</a>
-        <a href="minhasDoacoes.php">Doações</a>
-    </nav>
-    <div class="top-actions">
-        <button class="profile-btn" onclick="window.location.href='perfil.php'">
-            <img src="../php/<?php echo htmlspecialchars($foto); ?>" alt="Foto">
-            Meu Perfil
-        </button>
-    </div>
-</header>
+<?php require_once "header.php"; ?>
 
 <main class="feed" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
     <section class="welcome-card">
         <h2>Campanhas de Arrecadação</h2>
         <p>Escolha uma campanha ativa e acompanhe quanto já foi arrecadado para cada causa.</p>
+        <?php if ($nivel >= 2): ?>
+            <a href="criarCampanha.php" class="donate-btn" style="display:inline-block; margin-top:12px; text-decoration:none;">
+                + Criar Nova Campanha
+            </a>
+        <?php endif; ?>
     </section>
 
     <div class="campanhas-grid">

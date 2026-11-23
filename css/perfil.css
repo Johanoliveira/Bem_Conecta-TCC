@@ -930,3 +930,252 @@ CABEÇALHO
         width: 100%;
     }
 }
+
+/* =========================
+   CAMPANHAS E POSTS DA ONG NO PERFIL
+========================= */
+
+.cabecalho-secao-ong {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.cabecalho-secao-ong h2 {
+    color: #27763a;
+    margin: 0;
+}
+
+.lista-campanhas-ong {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 18px;
+}
+
+.card-campanha-perfil {
+    background: #f6faf6;
+    border: 1px solid #d5ebd8;
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.topo-campanha-perfil {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.topo-campanha-perfil h3 {
+    color: #236e34;
+    font-size: 17px;
+}
+
+.status-campanha {
+    background: #dff4e2;
+    color: #237835;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.desc-campanha-perfil {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.valores-campanha-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    color: #333;
+}
+
+.valores-campanha-perfil strong {
+    color: #1b8a32;
+}
+
+.valores-campanha-perfil small {
+    color: #777;
+}
+
+.barra-progresso-container {
+    width: 100%;
+    height: 10px;
+    background: #e0e6e1;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.barra-progresso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc40, #1b8a32);
+    border-radius: 8px;
+}
+
+.lista-posts-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.item-post-perfil {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #f8faf8;
+    border: 1px solid #e0e8e1;
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.thumb-post-perfil {
+    width: 110px;
+    height: 82px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.info-post-perfil {
+    flex: 1;
+    min-width: 0;
+}
+
+.meta-post-perfil {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 4px;
+}
+
+.badge-campanha-post {
+    background: #e4f5e7;
+    color: #1f7a33;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.info-post-perfil h3 {
+    color: #257238;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.info-post-perfil p {
+    color: #555;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.interacoes-post-perfil {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.btn-excluir-post-perfil {
+    background: #d93025;
+    color: #fff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.btn-excluir-post-perfil:hover {
+    background: #b3261e;
+}
+
+@media (max-width: 750px) {
+    .item-post-perfil {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .thumb-post-perfil {
+        width: 100%;
+        height: 160px;
+    }
+
+    .btn-excluir-post-perfil {
+        width: 100%;
+    }
+}
+
+.acoes-secao-campanhas {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.botao-editar-campanhas {
+    background: #f0f4f1;
+    color: #236e34;
+    border: 2px solid #238b36;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.botao-editar-campanhas:hover,
+.botao-editar-campanhas.ativo {
+    background: #238b36;
+    color: #fff;
+}
+
+.card-campanha-perfil.campanha-inativa {
+    background: #f3f3f3;
+    border-color: #d6d6d6;
+    opacity: 0.85;
+}
+
+.status-campanha.inativa {
+    background: #fde2e1;
+    color: #b71c1c;
+}
+
+.prazo-campanha-perfil {
+    color: #666;
+    font-size: 12px;
+}
+
+.btn-excluir-campanha {
+    margin-top: 8px;
+    width: 100%;
+    background: #d93025;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 9px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-excluir-campanha:hover {
+    background: #b3261e;
+}

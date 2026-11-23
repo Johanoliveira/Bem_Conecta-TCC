@@ -64,45 +64,43 @@ if ($nivel === 1) {
 }
 
 // =========================================
-// 3. BUSCAR CAMPANHAS DISPONÍVEIS
+// 3. BUSCAR CAMPANHAS DISPONÍVEIS (APENAS ATIVAS E NO PRAZO)
 // =========================================
+
+$conexao->query("
+    UPDATE campanhas
+    SET status = 'inativa'
+    WHERE status = 'ativa'
+      AND dataFim IS NOT NULL
+      AND dataFim <= NOW()
+");
 
 $campanhas = [];
 
 if ($nivel === 2 && $idONG !== null) {
-    // ONGs só podem selecionar campanhas próprias.
     $sqlCampanhas = "
         SELECT idCampanha, titulo
         FROM campanhas
         WHERE idONG = ?
+          AND status = 'ativa'
+          AND (dataFim IS NULL OR dataFim > NOW())
         ORDER BY dataInicio DESC
     ";
 
     $stmtCampanhas = $conexao->prepare($sqlCampanhas);
     $stmtCampanhas->bind_param("i", $idONG);
 } elseif ($nivel === 3) {
-    // Administradores podem selecionar campanhas de qualquer ONG.
     $sqlCampanhas = "
         SELECT idCampanha, titulo
         FROM campanhas
+        WHERE status = 'ativa'
+          AND (dataFim IS NULL OR dataFim > NOW())
         ORDER BY dataInicio DESC
     ";
 
     $stmtCampanhas = $conexao->prepare($sqlCampanhas);
 } else {
     $stmtCampanhas = null;
-}
-
-if ($stmtCampanhas) {
-    $stmtCampanhas->execute();
-
-    $resultadoCampanhas = $stmtCampanhas->get_result();
-
-    while ($campanha = $resultadoCampanhas->fetch_assoc()) {
-        $campanhas[] = $campanha;
-    }
-
-    $stmtCampanhas->close();
 }
 
 // =========================================
@@ -168,7 +166,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     SELECT idCampanha
                     FROM campanhas
                     WHERE idCampanha = ?
-                      AND idONG = ?
+                      AND idONG = ? 
+                      AND status = 'ativa' 
+                      AND (dataFim IS NULL 
+                      OR dataFim > NOW())
                     LIMIT 1
                 ";
 
@@ -184,7 +185,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $sqlVerifica = "
                     SELECT idCampanha
                     FROM campanhas
-                    WHERE idCampanha = ?
+                    WHERE idCampanha = ? 
+                        AND status = 'ativa' 
+                        AND (dataFim IS NULL 
+                        OR dataFim > NOW())
                     LIMIT 1
                 ";
 

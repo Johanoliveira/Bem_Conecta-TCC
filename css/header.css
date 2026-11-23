@@ -1,0 +1,270 @@
+/* =========================
+   HEADER PADRONIZADO (ÁREA LOGADA)
+========================= */
+
+.topbar {
+    width: 100%;
+    min-height: 92px;
+    background: #2ecc40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 24px;
+    position: relative;
+    z-index: 100;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.topbar * {
+    box-sizing: border-box;
+}
+
+/* LOGO */
+.topbar .logos {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.topbar .logo-foto img {
+    width: 66px;
+    display: block;
+}
+
+.topbar .logo-escrita img {
+    width: 135px;
+    display: block;
+}
+
+/* MENU PRINCIPAL */
+.topbar .menu {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.topbar .menu a {
+    text-decoration: none;
+    background: #efefef;
+    color: #22a848;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.topbar .menu a:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+}
+
+.topbar .menu a.ativo {
+    background: #176d28;
+    color: #ffffff;
+}
+
+.topbar .menu a.btn-doar-topo {
+    background: #ffffff;
+    color: #168522;
+    border: 2px solid #168522;
+    padding: 8px 14px;
+}
+
+.topbar .menu a.btn-doar-topo:hover {
+    background: #168522;
+    color: #ffffff;
+}
+
+/* AÇÕES À DIREITA */
+.topbar .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.topbar .ong-quick-btn {
+    text-decoration: none;
+    background: #176d28;
+    color: #ffffff;
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.topbar .ong-quick-btn:hover {
+    background: #11531e;
+    transform: translateY(-2px);
+}
+
+/* BARRA DE PESQUISA */
+.topbar .search-box {
+    display: flex;
+    align-items: center;
+    background: #efefef;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 42px;
+    height: 42px;
+    transition: width 0.35s ease;
+}
+
+.topbar .search-box.active {
+    width: 220px;
+}
+
+.topbar .search-box input {
+    width: 0;
+    opacity: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #2d2d2d;
+    padding: 0;
+    font-size: 14px;
+    transition: width 0.35s ease, opacity 0.2s ease, padding 0.35s ease;
+}
+
+.topbar .search-box.active input {
+    width: 178px;
+    opacity: 1;
+    padding: 9px 10px;
+}
+
+.topbar .search-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: #efefef;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* BOTÃO MEU PERFIL */
+.topbar .profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #efefef;
+    border: none;
+    padding: 6px 12px;
+    height: 42px;
+    border-radius: 8px;
+    color: #22a848;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.topbar .profile-btn:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+}
+
+.topbar .profile-btn.ativo {
+    background: #176d28;
+    color: #ffffff;
+}
+
+.topbar .profile-btn img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* BOTÃO SAIR */
+.topbar .logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 13px;
+    background: rgba(0, 0, 0, 0.18);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.topbar .logout-btn:hover {
+    background: #c62828;
+}
+
+/* BOTÃO MENU MOBILE */
+.topbar .mobile-menu-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 8px;
+    background: #efefef;
+    color: #22a848;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 1220px) {
+    .topbar {
+        flex-wrap: wrap;
+        padding: 14px 18px;
+    }
+
+    .topbar .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .topbar .menu {
+        display: none;
+        width: 100%;
+        order: 3;
+        flex-direction: column;
+        align-items: stretch;
+        padding-top: 8px;
+    }
+
+    .topbar .menu.aberto {
+        display: flex;
+    }
+
+    .topbar .menu a {
+        text-align: center;
+    }
+}
+
+@media (max-width: 680px) {
+    .topbar .top-actions {
+        width: 100%;
+        order: 2;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .topbar .search-box.active {
+        width: 100%;
+    }
+
+    .topbar .search-box.active input {
+        width: calc(100% - 42px);
+    }
+}

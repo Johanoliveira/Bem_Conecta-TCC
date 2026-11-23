@@ -5,6 +5,14 @@ header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/conexao.php";
 
 try {
+    // Atualiza para 'inativa' campanhas que já passaram da data limite
+    $conexao->query("
+        UPDATE campanhas
+        SET status = 'inativa'
+        WHERE status = 'ativa'
+          AND dataFim IS NOT NULL
+          AND dataFim <= NOW()
+    ");
 
     $sql = "
         SELECT
@@ -21,6 +29,10 @@ try {
             ON p.idONG = o.idONG
         INNER JOIN MoldeUsuario mu
             ON o.idMoldeUsuario = mu.idMUsuario
+        LEFT JOIN campanhas c
+            ON p.idCampanha = c.idCampanha
+        WHERE p.idCampanha IS NULL
+           OR (c.status = 'ativa' AND (c.dataFim IS NULL OR c.dataFim > NOW()))
         ORDER BY p.dataPublicacao DESC
     ";
 

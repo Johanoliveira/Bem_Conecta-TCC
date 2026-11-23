@@ -37,6 +37,7 @@ $resultado = $conexao->query($sqlOngs);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ONGs Parceiras - Bem Conecta</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/header.css">
     <style>
         .ongs-grid {
             display: grid;
@@ -82,20 +83,28 @@ $resultado = $conexao->query($sqlOngs);
             text-decoration: none;
             font-size: 0.9rem;
         }
+        .acoes-ong-card {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+        .btn-ver-perfil-ong {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            background: #e8f8eb;
+            color: #1b9e2a;
+            font-weight: bold;
+        }
+        .btn-ver-perfil-ong:hover {
+            background: #d5f2db;
+        }
     </style>
 </head>
 <body>
-<header class="topbar">
-    <div class="logos">
-        <div class="logo-foto"><img src="../img/logo/logo.webp" alt=""></div>
-        <div class="logo-escrita"><img src="../img/logo/escrita.png" alt=""></div>
-    </div>
-    <nav class="menu">
-        <a href="inicialPage.php">Início</a>
-        <a href="ongs.php">ONGs</a>
-        <a href="perfil.php">Meu Perfil</a>
-    </nav>
-</header>
+<?php require_once "header.php"; ?>
 
 <main class="feed" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
     <section class="welcome-card">
@@ -107,16 +116,23 @@ $resultado = $conexao->query($sqlOngs);
         <?php if ($resultado && $resultado->num_rows > 0): ?>
             <?php while ($ong = $resultado->fetch_assoc()): ?>
                 <?php
-                    $foto = $ong["fotoPerfil"] ?: "img/jpg/ftPerfil.jpg";
+                    $foto = $ong["fotoPerfil"];
+                    if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], true)) {
+                        $foto = "img/jpg/ftPerfil.jpg";
+                    }
                     $meta = (float) $ong["metaTotal"];
                     $arrecadado = (float) $ong["totalArrecadado"];
                     $porcentagem = $meta > 0 ? min(100, round(($arrecadado / $meta) * 100)) : 0;
                 ?>
                 <article class="ong-box">
                     <div class="ong-topo">
-                        <img src="../php/<?php echo htmlspecialchars($foto); ?>" alt="Logo ONG">
+                        <img src="../<?php echo htmlspecialchars($foto); ?>" alt="Logo ONG">
                         <div>
-                            <h3><?php echo htmlspecialchars($ong["nome"]); ?></h3>
+                            <h3>
+                                <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" style="color: inherit; text-decoration: none;">
+                                    <?php echo htmlspecialchars($ong["nome"]); ?>
+                                </a>
+                            </h3>
                             <small><?php echo htmlspecialchars($ong["email"]); ?></small>
                         </div>
                     </div>
@@ -147,9 +163,14 @@ $resultado = $conexao->query($sqlOngs);
                         <?php endif; ?>
                     </div>
 
-                    <a href="../html/pagamento.html" class="donate-btn" style="text-align:center; text-decoration:none;">
-                        Apoiar esta ONG
-                    </a>
+                    <div class="acoes-ong-card">
+                        <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" class="btn-ver-perfil-ong">
+                            Ver Perfil
+                        </a>
+                        <a href="../html/pagamento.html" class="donate-btn" style="flex:1; text-align:center; text-decoration:none; padding:10px;">
+                            Apoiar ONG
+                        </a>
+                    </div>
                 </article>
             <?php endwhile; ?>
         <?php else: ?>

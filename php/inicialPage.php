@@ -117,6 +117,7 @@ if ($stmt) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bem Conecta - Início</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/header.css">
 </head>
 
 <body
@@ -125,36 +126,7 @@ if ($stmt) {
     data-id-ong="<?php echo (int) $idOngLogada; ?>">
 
 <!-- TOPO -->
-<header class="topbar">
-    <div class="logos">
-        <div class="logo-foto">
-            <img src="../img/logo/logo.webp" loading="lazy" alt="">
-        </div>
-        <div class="logo-escrita">
-            <img src="../img/logo/escrita.png" loading="lazy" alt="">
-        </div>
-    </div>
-
-    <!-- Menu Superior -->
-    <nav class="menu">
-        <a href="campanhas.php">Projetos</a>
-        <a href="ongs.php">ONGs</a>
-        <a href="minhasDoacoes.php">Doações</a>
-    </nav>
-
-    <div class="top-actions">
-
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Pesquisar ONGs...">
-        <button class="search-btn" id="searchBtn">🔍</button>
-    </div>
-
-    <button class="profile-btn" onclick="window.location.href='perfil.php'">
-        <img src="../<?php echo htmlspecialchars($foto); ?>" alt="Foto de perfil">
-        Meu Perfil
-    </button>
-    </div>
-</header>
+<?php require_once "header.php"; ?>
 
 <!-- CONTEÚDO -->
 <div class="layout">
@@ -251,6 +223,6 @@ if ($stmt) {
     </aside>
 
 </div>
-<script src="../js/inicialPage.js?v=4"></script>
+<script src="../js/inicialPage.js?v=5"></script>
 </body>
 </html>

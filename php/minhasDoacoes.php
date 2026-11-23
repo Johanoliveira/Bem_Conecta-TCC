@@ -49,6 +49,7 @@ $stmt->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Doações - Bem Conecta</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
+    <link rel="stylesheet" href="../css/header.css">
     <style>
         .resumo-doacoes {
             display: flex;
@@ -100,24 +101,7 @@ $stmt->close();
     </style>
 </head>
 <body>
-<header class="topbar">
-    <div class="logos">
-        <div class="logo-foto"><img src="../img/logo/logo.webp" alt=""></div>
-        <div class="logo-escrita"><img src="../img/logo/escrita.png" alt=""></div>
-    </div>
-    <nav class="menu">
-        <a href="inicialPage.php">Início</a>
-        <a href="campanhas.php">Campanhas</a>
-        <a href="ongs.php">ONGs</a>
-        <a href="minhasDoacoes.php">Doações</a>
-    </nav>
-    <div class="top-actions">
-        <button class="profile-btn" onclick="window.location.href='perfil.php'">
-            <img src="../php/<?php echo htmlspecialchars($foto); ?>" alt="Foto">
-            Meu Perfil
-        </button>
-    </div>
-</header>
+<?php require_once "header.php"; ?>
 
 <main class="feed" style="max-width: 960px; margin: 24px auto; padding: 0 16px;">
     <section class="welcome-card">
