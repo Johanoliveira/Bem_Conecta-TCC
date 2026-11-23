@@ -16,14 +16,15 @@ try {
 
     $sql = "
         SELECT
-            p.idPost,
-            p.idONG,
-            p.titulo,
-            p.conteudo,
-            p.descricao,
-            p.dataPublicacao,
-            p.palavrasChave,
-            mu.nome AS nomeONG
+        p.idPost,
+        p.idONG,
+        p.idCampanha,
+        mu.nome AS nomeONG,
+        p.titulo,
+        p.conteudo,
+        p.descricao,
+        p.palavrasChave,
+        p.dataPublicacao
         FROM posts p
         INNER JOIN ONGs o
             ON p.idONG = o.idONG

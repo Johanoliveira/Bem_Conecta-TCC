@@ -118,6 +118,7 @@ if ($stmt) {
     <title>Bem Conecta - Início</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
     <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 
 <body
@@ -132,38 +133,7 @@ if ($stmt) {
 <div class="layout">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
-    <div class="sidebar-card">
-        <h3>Menu</h3>
-
-        <a href="inicialPage.php">🏠 Página Inicial</a>
-        <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
-        <a href="ongs.php">📌 ONGs Favoritas</a>
-        <a href="campanhas.php">📄 Campanhas</a>
-        <a href="perfil.php">👤 Meu Perfil</a>
-        <a href="perfil.php">⚙ Configurações</a>
-    </div>
-
-    <!-- SEU IMPACTO -->
-    <div class="sidebar-card">
-        <h3>Seu Impacto</h3>
-
-        <p>
-            <strong>R$ <?php echo number_format($totalDoado, 2, ',', '.'); ?></strong>
-            doados
-        </p>
-
-        <p>
-            <strong><?php echo $campanhasApoiadas; ?></strong>
-            campanhas apoiadas
-        </p>
-
-        <p>
-            <strong><?php echo $ongsFavoritas; ?></strong>
-            ONGs favoritas
-        </p>
-    </div>
-    </aside>
+    <?php require_once "sidebar.php"; ?>
 
     <!-- FEED -->
     <main class="feed">

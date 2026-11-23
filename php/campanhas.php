@@ -7,8 +7,6 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 
-$foto = $_SESSION["usuario_foto"] ?? "img/jpg/ftPerfil.jpg";
-
 $idUsuario = (int) $_SESSION["usuario_id"];
 $nivel = 1;
 $stmtNivel = $conexao->prepare("SELECT nivelDeSeguranca FROM MoldeUsuario WHERE idMUsuario = ?");
@@ -19,6 +17,14 @@ if ($stmtNivel) {
     $stmtNivel->close();
     if ($resN) $nivel = (int) $resN["nivelDeSeguranca"];
 }
+
+$conexao->query("
+    UPDATE campanhas
+    SET status = 'inativa'
+    WHERE status = 'ativa'
+      AND dataFim IS NOT NULL
+      AND dataFim <= NOW()
+");
 
 $sqlCampanhas = "
     SELECT
@@ -49,6 +55,7 @@ $resultado = $conexao->query($sqlCampanhas);
     <title>Campanhas - Bem Conecta</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
     <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <style>
         .campanhas-grid {
             display: grid;
@@ -93,55 +100,77 @@ $resultado = $conexao->query($sqlCampanhas);
 <body>
 <?php require_once "header.php"; ?>
 
-<main class="feed" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
-    <section class="welcome-card">
-        <h2>Campanhas de Arrecadação</h2>
-        <p>Escolha uma campanha ativa e acompanhe quanto já foi arrecadado para cada causa.</p>
-        <?php if ($nivel >= 2): ?>
-            <a href="criarCampanha.php" class="donate-btn" style="display:inline-block; margin-top:12px; text-decoration:none;">
-                + Criar Nova Campanha
-            </a>
-        <?php endif; ?>
-    </section>
+<div class="layout-com-sidebar">
+    <?php require_once "sidebar.php"; ?>
 
-    <div class="campanhas-grid">
-        <?php if ($resultado && $resultado->num_rows > 0): ?>
-            <?php while ($camp = $resultado->fetch_assoc()): ?>
-                <?php
-                    $meta = (float) ($camp["meta"] ?? 0);
-                    $arrecadado = (float) $camp["totalArrecadado"];
-                    $porcentagem = $meta > 0 ? min(100, round(($arrecadado / $meta) * 100)) : 0;
-                ?>
-                <article class="campanha-card">
-                    <div>
-                        <span class="tag-ong"><?php echo htmlspecialchars($camp["nomeONG"]); ?></span>
-                        <h3><?php echo htmlspecialchars($camp["titulo"]); ?></h3>
-                        <p style="margin-top:8px; color:#444;"><?php echo htmlspecialchars($camp["descricao"]); ?></p>
-                    </div>
+    <main class="feed">
+        <section class="welcome-card">
+            <h2>Campanhas de Arrecadação</h2>
+            <p>Escolha uma campanha ativa e acompanhe quanto já foi arrecadado para cada causa.</p>
+            <?php if ($nivel >= 2): ?>
+                <a href="criarCampanha.php" class="donate-btn" style="display:inline-block; margin-top:12px; text-decoration:none;">
+                    + Criar Nova Campanha
+                </a>
+            <?php endif; ?>
+        </section>
 
-                    <div>
-                        <small>
-                            Arrecadado: <strong>R$ <?php echo number_format($arrecadado, 2, ',', '.'); ?></strong>
-                            <?php if ($meta > 0): ?>
-                                de <strong>R$ <?php echo number_format($meta, 2, ',', '.'); ?></strong> (<?php echo $porcentagem; ?>%)
+        <div class="campanhas-grid">
+            <?php if ($resultado && $resultado->num_rows > 0): ?>
+                <?php while ($camp = $resultado->fetch_assoc()): ?>
+                    <?php
+                        $meta = (float) ($camp["meta"] ?? 0);
+                        $arrecadado = (float) $camp["totalArrecadado"];
+                        $porcentagem = $meta > 0 ? min(100, round(($arrecadado / $meta) * 100)) : 0;
+                        $isInativa = ($camp["status"] === "inativa" || (!empty($camp["dataFim"]) && strtotime($camp["dataFim"]) <= time()));
+                    ?>
+                    <article class="campanha-card">
+                        <div>
+                            <span class="tag-ong"><?php echo htmlspecialchars($camp["nomeONG"]); ?></span>
+                            <?php if ($isInativa): ?>
+                                <span style="background:#fde2e1; color:#b71c1c; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:bold; margin-left:4px;">Inativa</span>
                             <?php endif; ?>
-                        </small>
-                        <div class="barra-meta">
+                            <h3><?php echo htmlspecialchars($camp["titulo"]); ?></h3>
+                            <p style="margin-top:8px; color:#444;"><?php echo htmlspecialchars($camp["descricao"]); ?></p>
+                        </div>
+
+                        <div>
+                            <small>
+                                Arrecadado: <strong>R$ <?php echo number_format($arrecadado, 2, ',', '.'); ?></strong>
+                                <?php if ($meta > 0): ?>
+                                    de <strong>R$ <?php echo number_format($meta, 2, ',', '.'); ?></strong> (<?php echo $porcentagem; ?>%)
+                                <?php endif; ?>
+                            </small>
+                            <div class="barra-meta">
                             <div class="barra-progresso" style="width: <?php echo $porcentagem; ?>%;"></div>
                         </div>
 
-                        <a href="../html/pagamento.html?idCampanha=<?php echo (int) $camp["idCampanha"]; ?>"
-                           class="donate-btn"
-                           style="display:block; text-align:center; text-decoration:none; margin-top:14px;">
-                            Doar para esta Campanha
-                        </a>
+                        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                            <a href="campanha.php?idCampanha=<?php echo (int) $camp["idCampanha"]; ?>"
+                               class="details-btn"
+                               style="flex:1; text-align:center; text-decoration:none;">
+                                Saiba mais
+                            </a>
+
+                            <?php if ($isInativa): ?>
+                                <span style="flex:1; text-align:center; background:#ccc; color:#555; padding:12px; border-radius:8px; font-weight:bold;">
+                                    Encerrada
+                                </span>
+                            <?php else: ?>
+                                <a href="../html/pagamento.html?idCampanha=<?php echo (int) $camp["idCampanha"]; ?>"
+                                   class="donate-btn"
+                                   style="flex:1; text-align:center; text-decoration:none;">
+                                    Doar
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </article>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>Nenhuma campanha cadastrada no momento.</p>
-        <?php endif; ?>
-    </div>
-</main>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <p style="color:#fff;">Nenhuma campanha cadastrada no momento.</p>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
 </body>
 </html>

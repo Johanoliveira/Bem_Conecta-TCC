@@ -103,6 +103,18 @@ if ($nivel === 2 && $idONG !== null) {
     $stmtCampanhas = null;
 }
 
+if ($stmtCampanhas) {
+    $stmtCampanhas->execute();
+
+    $resultadoCampanhas = $stmtCampanhas->get_result();
+
+    while ($campanha = $resultadoCampanhas->fetch_assoc()) {
+        $campanhas[] = $campanha;
+    }
+
+    $stmtCampanhas->close();
+}
+
 // =========================================
 // 4. PROCESSAR FORMULÁRIO
 // =========================================

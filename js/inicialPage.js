@@ -3,25 +3,27 @@ const searchBox = document.querySelector(".search-box");
 const searchInput = document.getElementById("searchInput");
 const nomeUsuario = document.body.dataset.usuarioNome || "Usuário";
 
-searchBtn.addEventListener("click", () => {
-    searchBox.classList.toggle("active");
+// Evita conflito caso js/header.js já esteja controlando a barra de pesquisa
+if (searchBtn && searchBox && searchInput && !document.querySelector('script[src*="header.js"]')) {
+    searchBtn.addEventListener("click", () => {
+        searchBox.classList.toggle("active");
 
-    if (searchBox.classList.contains("active")) {
-        searchInput.focus();
-    } else {
-        searchInput.value = "";
-    }
-});
-
+        if (searchBox.classList.contains("active")) {
+            searchInput.focus();
+        } else {
+            searchInput.value = "";
+        }
+    });
+}
 
 // POST PARA TESTE
-
 const modoTeste = false;
 
 const postsTeste = [
     {
         idPost: 1,
         idONG: 1,
+        idCampanha: 1,
         nomeONG: "Instituto Sementes do Futuro",
         titulo: "Ajude nossa campanha de materiais escolares",
         conteudo: "../img/jpg/holder.jpg",
@@ -31,9 +33,7 @@ const postsTeste = [
     }
 ];
 
-
 // CARREGA POSTS
-
 async function carregarPosts() {
     const container = document.getElementById("posts-container");
 
@@ -89,11 +89,8 @@ async function carregarPosts() {
 }
 
 // CRIA POST
-
 function criarPost(post, container) {
-
     const article = document.createElement("article");
-
     article.classList.add("post-card");
 
     const data = formatarData(post.dataPublicacao);
@@ -109,11 +106,19 @@ function criarPost(post, container) {
         ? `<button class="delete-post-btn" data-post-id="${post.idPost}" style="background:#d93025; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Excluir</button>`
         : "";
 
+    const idCampanha = Number(post.idCampanha || 0);
+    const botaoDetalhesHTML = idCampanha > 0
+        ? `<button
+                class="details-btn"
+                data-post-id="${post.idPost}"
+                onclick="window.location.href='campanha.php?idCampanha=${idCampanha}'">
+                Ver Detalhes
+            </button>`
+        : "";
+
     article.innerHTML = `
-
         <div class="post-header">
-
-           <div class="post-header" style="display:flex; align-items:center; justify-content:space-between;">
+           <div class="post-header" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                 <div>
                     <a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
                         ${escaparHTML(post.nomeONG)}
@@ -122,9 +127,7 @@ function criarPost(post, container) {
                 </div>
                 ${botaoExcluirHTML}
             </div>
-
         </div>
-
 
         <img
             class="post-image"
@@ -133,23 +136,18 @@ function criarPost(post, container) {
             loading="lazy"
         >
 
-
         <h2>${escaparHTML(post.titulo)}</h2>
-
 
         <p class="post-description">
             ${escaparHTML(post.descricao)}
         </p>
 
-
         <div class="post-actions">
-
             <button
                 class="like-btn"
                 data-post-id="${post.idPost}">
                 Curtir <span class="like-count">0</span>
             </button>
-
 
             <button
                 class="comment-btn"
@@ -157,33 +155,23 @@ function criarPost(post, container) {
                 Comentar
             </button>
 
-
-           <button
+            <button
                 class="donate-btn"
                 data-post-id="${post.idPost}"
                 onclick="window.location.href='../html/pagamento.html?idPost=${post.idPost}'">
                 Doar Agora
             </button>
 
-            <button
-                class="details-btn"
-                data-post-id="${post.idPost}">
-                Ver Detalhes
-            </button>
-
+            ${botaoDetalhesHTML}
         </div>
-
 
         <div
             class="comments-section"
             id="comments-${post.idPost}"
         >
-
             <div class="comments-list"></div>
 
-
             <div class="comment-form">
-
                 <input
                     type="text"
                     class="comment-input"
@@ -193,9 +181,7 @@ function criarPost(post, container) {
                 <button class="send-comment">
                     Enviar
                 </button>
-
             </div>
-
         </div>
     `;
 
@@ -203,7 +189,6 @@ function criarPost(post, container) {
 }
 
 // CARREGA CURTIDAS E COMENTÁRIOS DO BANCO
-
 async function carregarInteracoes(idPost) {
     try {
         const resposta = await fetch(
@@ -243,9 +228,7 @@ async function carregarInteracoes(idPost) {
     }
 }
 
-
 // ENVIA CURTIDA AO PHP
-
 async function alternarCurtida(botao) {
     if (botao.dataset.processando === "true") return;
 
@@ -285,9 +268,7 @@ async function alternarCurtida(botao) {
     }
 }
 
-
 // ADICIONA UM COMENTÁRIO COM SEGURANÇA
-
 function adicionarComentarioNaTela(lista, comentario) {
     const elemento = document.createElement("div");
     elemento.classList.add("comment");
@@ -302,9 +283,7 @@ function adicionarComentarioNaTela(lista, comentario) {
     lista.appendChild(elemento);
 }
 
-
 // ENVIA COMENTÁRIO AO PHP
-
 async function enviarComentario(botao) {
     const section = botao.closest(".comments-section");
     const input = section.querySelector(".comment-input");
@@ -355,9 +334,7 @@ async function enviarComentario(botao) {
 }
 
 // FORMATA DATA
-
 function formatarData(dataBanco) {
-
     const data = new Date(dataBanco.replace(" ", "T"));
 
     if (isNaN(data)) {
@@ -371,78 +348,47 @@ function formatarData(dataBanco) {
     });
 }
 
-
 // ESCAPA HTML
-
 function escaparHTML(texto) {
-
     if (texto === null || texto === undefined) {
         return "";
     }
 
     const div = document.createElement("div");
-
     div.textContent = texto;
-
     return div.innerHTML;
 }
 
-
 // CLIQUES
-
 document.addEventListener("click", function(event) {
-
-
     // CURTIR
-
     const likeButton = event.target.closest(".like-btn");
-
     if (likeButton) {
         alternarCurtida(likeButton);
     }
 
-
-        // ABRIR COMENTÁRIOS
-
-        const commentButton =
-            event.target.closest(".comment-btn");
-
-        if (commentButton) {
-
-            const postId =
-                commentButton.dataset.postId;
-
-            const commentsSection =
-                document.getElementById(
-                    `comments-${postId}`
-                );
-
-            commentsSection.classList.toggle("active");
-        }
-
+    // ABRIR COMENTÁRIOS
+    const commentButton = event.target.closest(".comment-btn");
+    if (commentButton) {
+        const postId = commentButton.dataset.postId;
+        const commentsSection = document.getElementById(`comments-${postId}`);
+        commentsSection.classList.toggle("active");
+    }
 
     // ENVIAR COMENTÁRIO
-
     const sendButton = event.target.closest(".send-comment");
-
     if (sendButton) {
         enviarComentario(sendButton);
     }
 
-
     // TENTAR NOVAMENTE
-
-    const retryButton =
-        event.target.closest(".retry-posts-btn");
-
+    const retryButton = event.target.closest(".retry-posts-btn");
     if (retryButton) {
-
         carregarPosts();
     }
 
     // EXCLUIR POST
     const deleteButton = event.target.closest(".delete-post-btn");
-
     if (deleteButton) {
         const idPost = Number(deleteButton.dataset.postId);
 
@@ -471,14 +417,10 @@ document.addEventListener("click", function(event) {
             deleteButton.disabled = false;
         });
     }
-
 });
 
-
 // ENTER PARA ENVIAR COMENTÁRIO
-
 document.addEventListener("keydown", function(event) {
-
     if (event.key !== "Enter") {
         return;
     }
@@ -487,31 +429,10 @@ document.addEventListener("keydown", function(event) {
         return;
     }
 
-    const section =
-        event.target.closest(".comments-section");
-
-    const sendButton =
-        section.querySelector(".send-comment");
-
+    const section = event.target.closest(".comments-section");
+    const sendButton = section.querySelector(".send-comment");
     sendButton.click();
 });
 
-
 // INICIA OS POSTS
-
 carregarPosts();
-
-// =========================
-// PESQUISA DE POSTS E ONGs
-// =========================
-if (searchInput) {
-    searchInput.addEventListener("input", function () {
-        const termo = this.value.toLowerCase().trim();
-        const cards = document.querySelectorAll(".post-card");
-
-        cards.forEach(card => {
-            const textoCard = card.textContent.toLowerCase();
-            card.style.display = textoCard.includes(termo) ? "" : "none";
-        });
-    });
-}

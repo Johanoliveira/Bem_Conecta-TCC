@@ -38,6 +38,7 @@ $resultado = $conexao->query($sqlOngs);
     <title>ONGs Parceiras - Bem Conecta</title>
     <link rel="stylesheet" href="../css/inicialPage.css">
     <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <style>
         .ongs-grid {
             display: grid;
@@ -106,77 +107,81 @@ $resultado = $conexao->query($sqlOngs);
 <body>
 <?php require_once "header.php"; ?>
 
-<main class="feed" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
-    <section class="welcome-card">
-        <h2>ONGs Cadastradas e Metas de Arrecadação</h2>
-        <p>Conheça as organizações parceiras, acompanhe o progresso das metas e contribua diretamente.</p>
-    </section>
+<div class="layout-com-sidebar">
+    <?php require_once "sidebar.php"; ?>
 
-    <div class="ongs-grid">
-        <?php if ($resultado && $resultado->num_rows > 0): ?>
-            <?php while ($ong = $resultado->fetch_assoc()): ?>
-                <?php
-                    $foto = $ong["fotoPerfil"];
-                    if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], true)) {
-                        $foto = "img/jpg/ftPerfil.jpg";
-                    }
-                    $meta = (float) $ong["metaTotal"];
-                    $arrecadado = (float) $ong["totalArrecadado"];
-                    $porcentagem = $meta > 0 ? min(100, round(($arrecadado / $meta) * 100)) : 0;
-                ?>
-                <article class="ong-box">
-                    <div class="ong-topo">
-                        <img src="../<?php echo htmlspecialchars($foto); ?>" alt="Logo ONG">
+    <main class="feed">
+        <section class="welcome-card">
+            <h2>ONGs Cadastradas e Metas de Arrecadação</h2>
+            <p>Conheça as organizações parceiras, acompanhe o progresso das metas e contribua diretamente.</p>
+        </section>
+
+        <div class="ongs-grid">
+            <?php if ($resultado && $resultado->num_rows > 0): ?>
+                <?php while ($ong = $resultado->fetch_assoc()): ?>
+                    <?php
+                        $foto = $ong["fotoPerfil"];
+                        if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], true)) {
+                            $foto = "img/jpg/ftPerfil.jpg";
+                        }
+                        $meta = (float) $ong["metaTotal"];
+                        $arrecadado = (float) $ong["totalArrecadado"];
+                        $porcentagem = $meta > 0 ? min(100, round(($arrecadado / $meta) * 100)) : 0;
+                    ?>
+                    <article class="ong-box">
+                        <div class="ong-topo">
+                            <img src="../<?php echo htmlspecialchars($foto); ?>" alt="Logo ONG">
+                            <div>
+                                <h3>
+                                    <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" style="color: inherit; text-decoration: none;">
+                                        <?php echo htmlspecialchars($ong["nome"]); ?>
+                                    </a>
+                                </h3>
+                                <small><?php echo htmlspecialchars($ong["email"]); ?></small>
+                            </div>
+                        </div>
+
+                        <p><?php echo htmlspecialchars($ong["descricao"]); ?></p>
+
                         <div>
-                            <h3>
-                                <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" style="color: inherit; text-decoration: none;">
-                                    <?php echo htmlspecialchars($ong["nome"]); ?>
-                                </a>
-                            </h3>
-                            <small><?php echo htmlspecialchars($ong["email"]); ?></small>
+                            <small>
+                                Arrecadado: <strong>R$ <?php echo number_format($arrecadado, 2, ',', '.'); ?></strong>
+                                <?php if ($meta > 0): ?>
+                                    de <strong>R$ <?php echo number_format($meta, 2, ',', '.'); ?></strong> (<?php echo $porcentagem; ?>%)
+                                <?php endif; ?>
+                            </small>
+                            <div class="barra-meta">
+                                <div class="barra-progresso" style="width: <?php echo $porcentagem; ?>%;"></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <p><?php echo htmlspecialchars($ong["descricao"]); ?></p>
-
-                    <div>
-                        <small>
-                            Arrecadado: <strong>R$ <?php echo number_format($arrecadado, 2, ',', '.'); ?></strong>
-                            <?php if ($meta > 0): ?>
-                                de <strong>R$ <?php echo number_format($meta, 2, ',', '.'); ?></strong> (<?php echo $porcentagem; ?>%)
+                        <div class="redes-ong">
+                            <?php if (!empty($ong["Website"])): ?>
+                                <a href="<?php echo htmlspecialchars($ong["Website"]); ?>" target="_blank">Site</a>
                             <?php endif; ?>
-                        </small>
-                        <div class="barra-meta">
-                            <div class="barra-progresso" style="width: <?php echo $porcentagem; ?>%;"></div>
+                            <?php if (!empty($ong["instagram"])): ?>
+                                <a href="<?php echo htmlspecialchars($ong["instagram"]); ?>" target="_blank">Instagram</a>
+                            <?php endif; ?>
+                            <?php if (!empty($ong["facebook"])): ?>
+                                <a href="<?php echo htmlspecialchars($ong["facebook"]); ?>" target="_blank">Facebook</a>
+                            <?php endif; ?>
                         </div>
-                    </div>
 
-                    <div class="redes-ong">
-                        <?php if (!empty($ong["Website"])): ?>
-                            <a href="<?php echo htmlspecialchars($ong["Website"]); ?>" target="_blank">Site</a>
-                        <?php endif; ?>
-                        <?php if (!empty($ong["instagram"])): ?>
-                            <a href="<?php echo htmlspecialchars($ong["instagram"]); ?>" target="_blank">Instagram</a>
-                        <?php endif; ?>
-                        <?php if (!empty($ong["facebook"])): ?>
-                            <a href="<?php echo htmlspecialchars($ong["facebook"]); ?>" target="_blank">Facebook</a>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="acoes-ong-card">
-                        <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" class="btn-ver-perfil-ong">
-                            Ver Perfil
-                        </a>
-                        <a href="../html/pagamento.html" class="donate-btn" style="flex:1; text-align:center; text-decoration:none; padding:10px;">
-                            Apoiar ONG
-                        </a>
-                    </div>
-                </article>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>Nenhuma ONG cadastrada no momento.</p>
-        <?php endif; ?>
-    </div>
-</main>
+                        <div class="acoes-ong-card">
+                            <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" class="btn-ver-perfil-ong">
+                                Ver Perfil
+                            </a>
+                            <a href="../html/pagamento.html" class="donate-btn" style="flex:1; text-align:center; text-decoration:none; padding:10px;">
+                                Apoiar ONG
+                            </a>
+                        </div>
+                    </article>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <p style="color:#fff;">Nenhuma ONG cadastrada no momento.</p>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
 </body>
 </html>

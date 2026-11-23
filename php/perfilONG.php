@@ -108,25 +108,17 @@ $stmtPosts->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($ong["nome"]); ?> - Bem Conecta</title>
-    <link rel="stylesheet" href="../css/perfil.css?v=3">
+    <link rel="stylesheet" href="../css/perfil.css?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 <body>
 
 <?php require_once "header.php"; ?>
 
 <main class="pagina">
-    <aside class="sidebar">
-        <div class="menu-lateral">
-            <h3>Menu</h3>
-            <a href="inicialPage.php">🏠 Página Inicial</a>
-            <a href="minhasDoacoes.php">❤️ Minhas Doações</a>
-            <a href="ongs.php" class="ativo">📌 ONGs Cadastradas</a>
-            <a href="campanhas.php">📄 Campanhas</a>
-            <a href="perfil.php">👤 Meu Perfil</a>
-        </div>
-    </aside>
+    <?php require_once "sidebar.php"; ?>
 
     <section class="conteudo-perfil">
         <div class="card-perfil">
