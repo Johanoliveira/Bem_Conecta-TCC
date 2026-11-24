@@ -87,7 +87,7 @@ $_sbPaginaAtual = basename($_SERVER["PHP_SELF"]);
             <span class="sb-texto">Meu Perfil</span>
         </a>
 
-        <a href="perfil.php#configuracoes" title="Configurações">
+        <a href="#configuracoes" id="btnAbrirConfiguracoes" title="Configurações">
             <span class="sb-icone">⚙</span>
             <span class="sb-texto">Configurações</span>
         </a>
@@ -112,4 +112,349 @@ $_sbPaginaAtual = basename($_SERVER["PHP_SELF"]);
         </p>
     </div>
 </aside>
+
+<!-- MODAL DE CONFIGURAÇÕES E EXCLUSÃO DE CONTA -->
+<div class="bc-config-overlay" id="bcConfigOverlay" aria-hidden="true">
+    <div class="bc-config-modal" role="dialog" aria-modal="true" aria-labelledby="bcConfigTitulo">
+        <div class="bc-config-header">
+            <h2 id="bcConfigTitulo">⚙️ Configurações da Conta</h2>
+            <button type="button" class="bc-config-fechar" id="bcConfigFechar" title="Fechar">✕</button>
+        </div>
+
+        <div class="bc-config-bloco">
+            <h3>👤 Perfil e Dados Pessoais</h3>
+            <p>Altere seu nome, foto de perfil, telefone ou endereço cadastrado.</p>
+            <a href="perfil.php" class="bc-config-btn-secundario">✏️ Ir para Meu Perfil</a>
+        </div>
+
+        <div class="bc-config-bloco bc-config-perigo">
+            <h3>⚠️ Excluir Conta</h3>
+            <p>
+                Esta ação é <strong>permanente</strong> e apagará seus dados, histórico e publicações vinculadas no Bem Conecta.
+            </p>
+
+            <button type="button" class="bc-config-btn-perigo" id="bcBtnMostrarConfirmacao">
+                🗑️ Excluir Minha Conta
+            </button>
+
+            <form id="bcFormExcluirConta" class="bc-config-confirmacao" style="display: none;">
+                <label for="bcSenhaExcluir">Digite sua senha atual para confirmar:</label>
+                <input
+                    type="password"
+                    id="bcSenhaExcluir"
+                    name="senha"
+                    placeholder="Sua senha atual"
+                    required
+                    autocomplete="current-password"
+                >
+                <p class="bc-config-erro" id="bcErroExcluir"></p>
+
+                <div class="bc-config-acoes-form">
+                    <button type="button" class="bc-config-btn-cancelar" id="bcBtnCancelarExclusao">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bc-config-btn-confirmar" id="bcBtnConfirmarExclusao">
+                        Confirmar Exclusão
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.bc-config-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 9999;
+}
+
+.bc-config-overlay.aberto {
+    display: flex;
+}
+
+.bc-config-modal {
+    width: 100%;
+    max-width: 480px;
+    border-radius: 22px;
+    padding: 26px;
+    color: #ffffff;
+    background: linear-gradient(
+        145deg,
+        rgba(35, 48, 38, 0.88),
+        rgba(20, 28, 22, 0.92)
+    );
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.45),
+        inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.bc-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.bc-config-header h2 {
+    font-size: 1.35rem;
+    color: #ffffff;
+}
+
+.bc-config-fechar {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.bc-config-fechar:hover {
+    background: rgba(255, 255, 255, 0.26);
+}
+
+.bc-config-bloco {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bc-config-bloco h3 {
+    font-size: 1.05rem;
+    color: #7dff9e;
+}
+
+.bc-config-bloco p {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.45;
+}
+
+.bc-config-bloco.bc-config-perigo {
+    background: rgba(217, 48, 37, 0.14);
+    border-color: rgba(255, 107, 107, 0.42);
+}
+
+.bc-config-bloco.bc-config-perigo h3 {
+    color: #ff8a80;
+}
+
+.bc-config-btn-secundario {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    background: #1ea342;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.94rem;
+    padding: 11px 16px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.bc-config-btn-secundario:hover {
+    background: #168232;
+}
+
+.bc-config-btn-perigo {
+    background: #d93025;
+    color: #ffffff;
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.bc-config-btn-perigo:hover {
+    background: #b5241b;
+}
+
+.bc-config-confirmacao {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.bc-config-confirmacao label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.bc-config-confirmacao input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2922;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.bc-config-erro {
+    color: #ff9e96 !important;
+    font-size: 0.88rem !important;
+    font-weight: 600;
+    min-height: 18px;
+}
+
+.bc-config-acoes-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.bc-config-btn-cancelar,
+.bc-config-btn-confirmar {
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+}
+
+.bc-config-btn-cancelar {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.bc-config-btn-confirmar {
+    background: #d93025;
+    color: #ffffff;
+}
+
+.bc-config-btn-confirmar:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+</style>
+
 <script src="../js/sidebar.js"></script>
+<script>
+(function () {
+    const btnAbrir = document.getElementById("btnAbrirConfiguracoes");
+    const overlay = document.getElementById("bcConfigOverlay");
+    const btnFechar = document.getElementById("bcConfigFechar");
+    const btnMostrarConfirmacao = document.getElementById("bcBtnMostrarConfirmacao");
+    const formExcluir = document.getElementById("bcFormExcluirConta");
+    const btnCancelar = document.getElementById("bcBtnCancelarExclusao");
+    const btnConfirmar = document.getElementById("bcBtnConfirmarExclusao");
+    const inputSenha = document.getElementById("bcSenhaExcluir");
+    const msgErro = document.getElementById("bcErroExcluir");
+
+    if (!btnAbrir || !overlay) return;
+
+    function abrirModal() {
+        overlay.classList.add("aberto");
+        overlay.setAttribute("aria-hidden", "false");
+    }
+
+    function fecharModal() {
+        overlay.classList.remove("aberto");
+        overlay.setAttribute("aria-hidden", "true");
+        if (formExcluir) formExcluir.style.display = "none";
+        if (btnMostrarConfirmacao) btnMostrarConfirmacao.style.display = "block";
+        if (inputSenha) inputSenha.value = "";
+        if (msgErro) msgErro.textContent = "";
+    }
+
+    btnAbrir.addEventListener("click", function (e) {
+        e.preventDefault();
+        abrirModal();
+    });
+
+    if (window.location.hash === "#configuracoes") {
+        abrirModal();
+    }
+
+    btnFechar?.addEventListener("click", fecharModal);
+
+    overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) {
+            fecharModal();
+        }
+    });
+
+    btnMostrarConfirmacao?.addEventListener("click", function () {
+        btnMostrarConfirmacao.style.display = "none";
+        formExcluir.style.display = "flex";
+        inputSenha.focus();
+    });
+
+    btnCancelar?.addEventListener("click", function () {
+        formExcluir.style.display = "none";
+        btnMostrarConfirmacao.style.display = "block";
+        inputSenha.value = "";
+        msgErro.textContent = "";
+    });
+
+    formExcluir?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        msgErro.textContent = "";
+
+        const senha = inputSenha.value.trim();
+        if (!senha) {
+            msgErro.textContent = "Digite sua senha para confirmar.";
+            return;
+        }
+
+        if (!confirm("Tem certeza absoluta? Sua conta será excluída permanentemente.")) {
+            return;
+        }
+
+        btnConfirmar.disabled = true;
+        btnConfirmar.textContent = "Excluindo...";
+
+        try {
+            const resp = await fetch("excluirConta.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ senha })
+            });
+
+            const dados = await resp.json();
+
+            if (!resp.ok || !dados.sucesso) {
+                msgErro.textContent = dados.erro || "Erro ao excluir a conta.";
+                btnConfirmar.disabled = false;
+                btnConfirmar.textContent = "Confirmar Exclusão";
+                return;
+            }
+
+            alert("Sua conta foi excluída com sucesso.");
+            window.location.href = "../html/login.html";
+        } catch (err) {
+            msgErro.textContent = "Erro de conexão ao tentar excluir a conta.";
+            btnConfirmar.disabled = false;
+            btnConfirmar.textContent = "Confirmar Exclusão";
+        }
+    });
+})();
+</script>
