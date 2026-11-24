@@ -35,7 +35,7 @@ if (!$usuario) {
 
 $nivel = (int) ($usuario["nivelDeSeguranca"] ?? 1);
 
-// Se for ONG (nivel >= 2), busca dados da tabela ONGs
+// Se for ONG (nivel === 2), busca dados da tabela ONGs
 $dadosOng = null;
 $idONG = null;
 
@@ -47,7 +47,7 @@ $conexao->query("
       AND dataFim <= NOW()
 ");
 
-if ($nivel >= 2) {
+if ($nivel === 2) {
     $stmtOng = $conexao->prepare("
         SELECT idONG, descricao, CNPJ, Website, instagram, facebook, linkX
         FROM ONGs
@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["acao"]) && $_POST["ac
         $stmtUpdate->close();
 
         // Se for ONG, atualiza também descrição e redes sociais
-        if ($nivel >= 2 && $idONG !== null) {
+        if ($nivel === 2 && $idONG !== null) {
             $novaDescricao = trim($_POST["descricaoOng"] ?? ($dadosOng["descricao"] ?? ""));
             $novoWebsite = trim($_POST["websiteOng"] ?? "");
             $novoInstagram = trim($_POST["instagramOng"] ?? "");
@@ -142,14 +142,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["acao"]) && $_POST["ac
 }
 
 // =====================================
-// DADOS ESPECÍFICOS: ONG vs DOADOR
+// DADOS ESPECÍFICOS: ONG vs ADMIN vs DOADOR
 // =====================================
 $campanhasOng = [];
 $postsOng = [];
+$postsAdmin = [];
+$totalInteracoesAdmin = 0;
 $totalArrecadadoGeral = 0.0;
 $atividadesRecentes = [];
 
-if ($nivel >= 2 && $idONG !== null) {
+if ($nivel === 2 && $idONG !== null) {
     // Busca campanhas da ONG com total arrecadado em cada uma
     $sqlCamp = "
         SELECT
@@ -207,6 +209,35 @@ if ($nivel >= 2 && $idONG !== null) {
             $postsOng[] = $row;
         }
         $stmtPosts->close();
+    }
+} elseif ($nivel === 3) {
+    // Busca posts/comunicados publicados pelo Administrador
+    $sqlPostsAdmin = "
+        SELECT
+            p.idPost,
+            p.idCampanha,
+            p.titulo,
+            p.conteudo,
+            p.descricao,
+            p.dataPublicacao,
+            c.titulo AS tituloCampanha,
+            (SELECT COUNT(*) FROM curtidas cu WHERE cu.idPost = p.idPost) AS totalCurtidas,
+            (SELECT COUNT(*) FROM comentarios co WHERE co.idPost = p.idPost) AS totalComentarios
+        FROM posts p
+        LEFT JOIN campanhas c ON p.idCampanha = c.idCampanha
+        WHERE p.idMUsuario = ?
+        ORDER BY p.dataPublicacao DESC, p.idPost DESC
+    ";
+    $stmtPostsAdm = $conexao->prepare($sqlPostsAdmin);
+    if ($stmtPostsAdm) {
+        $stmtPostsAdm->bind_param("i", $idUsuario);
+        $stmtPostsAdm->execute();
+        $resPostsAdm = $stmtPostsAdm->get_result();
+        while ($row = $resPostsAdm->fetch_assoc()) {
+            $postsAdmin[] = $row;
+            $totalInteracoesAdmin += (int) $row["totalCurtidas"] + (int) $row["totalComentarios"];
+        }
+        $stmtPostsAdm->close();
     }
 } else {
     // Atividades recentes para usuário comum
@@ -283,7 +314,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Bem Conecta</title>
 
-    <link rel="stylesheet" href="../css/perfil.css?v=10">
+    <link rel="stylesheet" href="../css/perfil.css?v=11">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
@@ -302,10 +333,26 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
             <?php require_once "sidebar.php"; ?>
 
-            <?php if ($nivel >= 2): ?>
+            <?php if ($nivel === 2 && $idONG !== null): ?>
                 <div class="meus-posts">
                     <a href="criarCampanha.php">
                         🎯 Criar Campanha
+                    </a>
+                </div>
+                <div class="meus-posts">
+                    <a href="criarPost.php">
+                        ➕ Criar Post
+                    </a>
+                </div>
+                <div class="meus-posts">
+                    <a href="#meus-posts">
+                        📰 Meus Posts
+                    </a>
+                </div>
+            <?php elseif ($nivel === 3): ?>
+                <div class="meus-posts">
+                    <a href="painelAdmin.php">
+                        🛡️ Painel Admin
                     </a>
                 </div>
                 <div class="meus-posts">
@@ -327,11 +374,27 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
             <!-- TÍTULO -->
             <div class="titulo-pagina">
-                <h1><?php echo $nivel >= 2 ? "Perfil da ONG" : "Meu Perfil"; ?></h1>
+                <h1>
+                    <?php
+                        if ($nivel === 2) {
+                            echo "Perfil da ONG";
+                        } elseif ($nivel === 3) {
+                            echo "Perfil do Administrador";
+                        } else {
+                            echo "Meu Perfil";
+                        }
+                    ?>
+                </h1>
                 <p>
-                    <?php echo $nivel >= 2
-                        ? "Gerencie as informações da organização, acompanhe suas campanhas e publicações."
-                        : "Gerencie suas informações e acompanhe seu impacto."; ?>
+                    <?php
+                        if ($nivel === 2) {
+                            echo "Gerencie as informações da organização, acompanhe suas campanhas e publicações.";
+                        } elseif ($nivel === 3) {
+                            echo "Gerencie suas informações administrativas, comunicados publicados e acesso às métricas.";
+                        } else {
+                            echo "Gerencie suas informações e acompanhe seu impacto.";
+                        }
+                    ?>
                 </p>
             </div>
 
@@ -385,15 +448,25 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
                 <hr>
 
-                <!-- INFORMAÇÕES PESSOAIS / DA ONG -->
+                <!-- INFORMAÇÕES PESSOAIS / DA ONG / DO ADMIN -->
                 <div class="secao">
 
-                    <h2><?php echo $nivel >= 2 ? "Informações da Organização" : "Informações Pessoais"; ?></h2>
+                    <h2>
+                        <?php
+                            if ($nivel === 2) {
+                                echo "Informações da Organização";
+                            } elseif ($nivel === 3) {
+                                echo "Informações do Administrador";
+                            } else {
+                                echo "Informações Pessoais";
+                            }
+                        ?>
+                    </h2>
 
                     <div class="grid-informacoes">
 
                         <div class="campo" id="campoNome">
-                            <span><?php echo $nivel >= 2 ? "Nome da ONG" : "Nome completo"; ?></span>
+                            <span><?php echo $nivel === 2 ? "Nome da ONG" : "Nome completo"; ?></span>
                             <p id="nomeCompleto">
                                 <?php echo htmlspecialchars($nome); ?>
                             </p>
@@ -430,7 +503,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                             >
                         </div>
 
-                        <?php if ($nivel >= 2 && $dadosOng): ?>
+                        <?php if ($nivel === 2 && $dadosOng): ?>
                             <div class="campo">
                                 <span>CNPJ</span>
                                 <p><?php echo htmlspecialchars($dadosOng["CNPJ"] ?: "-"); ?></p>
@@ -473,6 +546,11 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                                     placeholder="@suaong ou link"
                                 >
                             </div>
+                        <?php elseif ($nivel === 3): ?>
+                            <div class="campo">
+                                <span>Nível de Acesso</span>
+                                <p>🛡️ Administrador (Nível 3)</p>
+                            </div>
                         <?php else: ?>
                             <div class="campo" id="campoLocalizacao">
                                 <span>Localização</span>
@@ -496,8 +574,8 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
 
             </div>
 
-            <!-- ESTATÍSTICAS -->
-            <?php if ($nivel >= 2): ?>
+            <!-- ESTATÍSTICAS E SEÇÕES POR PERFIL -->
+            <?php if ($nivel === 2 && $idONG !== null): ?>
                 <div class="estatisticas">
                     <a
                         href="minhasArrecadacoes.php"
@@ -646,6 +724,7 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                                         src="<?php echo htmlspecialchars($post["conteudo"]); ?>"
                                         alt="<?php echo htmlspecialchars($post["titulo"]); ?>"
                                         class="thumb-post-perfil"
+                                        onerror="this.onerror=null; this.src='../img/jpg/holder.jpg';"
                                     >
 
                                     <div class="info-post-perfil">
@@ -653,6 +732,111 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
                                             <span><?php echo date("d/m/Y H:i", strtotime($post["dataPublicacao"])); ?></span>
                                             <?php if (!empty($post["tituloCampanha"])): ?>
                                                 <span class="badge-campanha-post">🎯 <?php echo htmlspecialchars($post["tituloCampanha"]); ?></span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <h3><?php echo htmlspecialchars($post["titulo"]); ?></h3>
+                                        <p><?php echo htmlspecialchars(mb_strimwidth($post["descricao"], 0, 160, "...")); ?></p>
+
+                                        <div class="interacoes-post-perfil">
+                                            <span>❤️ <?php echo (int) $post["totalCurtidas"]; ?> curtida(s)</span>
+                                            <span>💬 <?php echo (int) $post["totalComentarios"]; ?> comentário(s)</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="btn-excluir-post-perfil"
+                                        data-post-id="<?php echo (int) $post["idPost"]; ?>"
+                                        title="Excluir publicação"
+                                    >
+                                        <i class="fa-solid fa-trash"></i> Excluir
+                                    </button>
+                                </article>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+            <?php elseif ($nivel === 3): ?>
+                <!-- ESTATÍSTICAS E COMUNICADOS DO ADMINISTRADOR -->
+                <div class="estatisticas">
+                    <a
+                        href="painelAdmin.php"
+                        class="card-estatistica"
+                        title="Abrir Painel Administrativo"
+                        style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(27, 158, 42, 0.22)';"
+                        onmouseout="this.style.transform=''; this.style.boxShadow='';"
+                    >
+                        <div class="icone verde">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <span>Central de Métricas</span>
+                            <h2>Painel Admin</h2>
+                            <small style="display: block; margin-top: 4px; color: #1b9e2a; font-weight: 700; font-size: 0.8rem;">
+                                Abrir indicadores →
+                            </small>
+                        </div>
+                    </a>
+
+                    <div class="card-estatistica">
+                        <div class="icone">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                        <div>
+                            <span>Meus Comunicados</span>
+                            <h2><?php echo count($postsAdmin); ?></h2>
+                        </div>
+                    </div>
+
+                    <div class="card-estatistica">
+                        <div class="icone">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <div>
+                            <span>Interações Recebidas</span>
+                            <h2><?php echo $totalInteracoesAdmin; ?></h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POSTS / COMUNICADOS DO ADMINISTRADOR -->
+                <div class="atividade" id="meus-posts">
+                    <div class="cabecalho-secao-ong">
+                        <h2>Meus Posts e Comunicados</h2>
+                        <a href="criarPost.php" class="botao-editar" style="text-decoration: none;">
+                            <i class="fa-solid fa-plus"></i> Criar Post
+                        </a>
+                    </div>
+
+                    <?php if (empty($postsAdmin)): ?>
+                        <div class="atividade-item">
+                            <div class="atividade-icone">📢</div>
+                            <div>
+                                <h3>Nenhum comunicado publicado ainda</h3>
+                                <p>Clique em "Criar Post" para publicar um comunicado institucional no feed.</p>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="lista-posts-perfil">
+                            <?php foreach ($postsAdmin as $post): ?>
+                                <article class="item-post-perfil" data-post-id="<?php echo (int) $post["idPost"]; ?>">
+                                    <img
+                                        src="<?php echo htmlspecialchars($post["conteudo"]); ?>"
+                                        alt="<?php echo htmlspecialchars($post["titulo"]); ?>"
+                                        class="thumb-post-perfil"
+                                        onerror="this.onerror=null; this.src='../img/jpg/holder.jpg';"
+                                    >
+
+                                    <div class="info-post-perfil">
+                                        <div class="meta-post-perfil">
+                                            <span><?php echo date("d/m/Y H:i", strtotime($post["dataPublicacao"])); ?></span>
+                                            <?php if (!empty($post["tituloCampanha"])): ?>
+                                                <span class="badge-campanha-post">🎯 <?php echo htmlspecialchars($post["tituloCampanha"]); ?></span>
+                                            <?php else: ?>
+                                                <span class="badge-campanha-post">🛡️ Comunicado Oficial</span>
                                             <?php endif; ?>
                                         </div>
 

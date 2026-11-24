@@ -139,13 +139,14 @@ CREATE TABLE campanhaCausas (
 
 -- =========================================
 -- POSTS
--- Um post pode pertencer a uma campanha
--- ou ser um post geral da ONG
+-- Um post pode pertencer a uma campanha,
+-- ser um post geral da ONG ou comunicado do Admin
 -- =========================================
 
 CREATE TABLE posts (
     idPost INT AUTO_INCREMENT PRIMARY KEY,
-    idONG INT NOT NULL,
+    idONG INT NULL,
+    idMUsuario INT NULL,
     idCampanha INT NULL,
     titulo VARCHAR(70) NOT NULL,
     conteudo TEXT NOT NULL,
@@ -155,6 +156,10 @@ CREATE TABLE posts (
 
     FOREIGN KEY (idONG)
         REFERENCES ONGs(idONG),
+
+    FOREIGN KEY (idMUsuario)
+        REFERENCES MoldeUsuario(idMUsuario)
+        ON DELETE SET NULL,
 
     FOREIGN KEY (idCampanha)
         REFERENCES campanhas(idCampanha)

@@ -80,6 +80,9 @@ $_hdrPaginaAtual = basename($_SERVER["PHP_SELF"]);
     <div class="top-actions">
         <?php if ($_hdrNivel >= 2): ?>
             <a href="criarPost.php" class="ong-quick-btn">+ Post</a>
+        <?php endif; ?>
+
+        <?php if ($_hdrNivel === 2): ?>
             <a href="criarCampanha.php" class="ong-quick-btn">+ Campanha</a>
         <?php endif; ?>
 

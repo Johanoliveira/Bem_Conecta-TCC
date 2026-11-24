@@ -9,7 +9,7 @@ if (!isset($_SESSION["usuario_id"])) {
 
 $adminId = (int) $_SESSION["usuario_id"];
 
-// 1. Confirma se o usuário logado realmente possui nivelDeSeguranca = 3
+// Garante que apenas contas com nivelDeSeguranca = 3 acessem
 $stmtAuth = $conexao->prepare("
     SELECT idMUsuario, nome, nivelDeSeguranca
     FROM MoldeUsuario
@@ -55,31 +55,23 @@ function apagarArquivoImagemPost(?string $caminhoBanco): void
 }
 
 // =========================================================
-// 2. ENDPOINTS AJAX DE GERENCIAMENTO (POST JSON)
+// AÇÕES ADMINISTRATIVAS (MODERAR / ALTERAR PERMISSÃO)
 // =========================================================
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     header("Content-Type: application/json; charset=UTF-8");
     $payload = json_decode(file_get_contents("php://input"), true);
     $acao = trim((string) ($payload["acao"] ?? ""));
 
-    // AÇÃO A: ALTERAR NÍVEL DE SEGURANÇA (PROMOVER / REBAIXAR ADMIN)
     if ($acao === "alterar_nivel") {
         $alvoId = (int) ($payload["idMUsuario"] ?? 0);
         $novoNivel = (int) ($payload["novoNivel"] ?? 0);
 
-        if ($alvoId <= 0 || !in_array($novoNivel, [1, 2, 3], true)) {
+        if ($alvoId <= 0 || !in_array($novoNivel, [1, 2, 3], true) || $alvoId === $adminId) {
             http_response_code(400);
-            echo json_encode(["sucesso" => false, "erro" => "Parâmetros inválidos."], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["sucesso" => false, "erro" => "Operação não permitida."], JSON_UNESCAPED_UNICODE);
             exit;
         }
 
-        if ($alvoId === $adminId) {
-            http_response_code(403);
-            echo json_encode(["sucesso" => false, "erro" => "Você não pode alterar o nível da sua própria conta."], JSON_UNESCAPED_UNICODE);
-            exit;
-        }
-
-        // Verifica se o alvo possui registro na tabela ONGs para não perder o vínculo de nível 2 ao rebaixar
         $stmtCheckOng = $conexao->prepare("SELECT idONG FROM ONGs WHERE idMoldeUsuario = ? LIMIT 1");
         $stmtCheckOng->bind_param("i", $alvoId);
         $stmtCheckOng->execute();
@@ -95,27 +87,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $ok = $stmtUpd->execute();
         $stmtUpd->close();
 
-        echo json_encode([
-            "sucesso" => $ok,
-            "novoNivel" => $novoNivel,
-            "erro" => $ok ? null : "Erro ao atualizar nível de segurança."
-        ], JSON_UNESCAPED_UNICODE);
+        echo json_encode(["sucesso" => $ok, "novoNivel" => $novoNivel], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    // AÇÃO B: EXCLUIR CONTA (USUÁRIO COMUM, ONG OU OUTRO ADMIN)
     if ($acao === "excluir_usuario") {
         $alvoId = (int) ($payload["idMUsuario"] ?? 0);
-
-        if ($alvoId <= 0) {
+        if ($alvoId <= 0 || $alvoId === $adminId) {
             http_response_code(400);
-            echo json_encode(["sucesso" => false, "erro" => "Conta inválida."], JSON_UNESCAPED_UNICODE);
-            exit;
-        }
-
-        if ($alvoId === $adminId) {
-            http_response_code(403);
-            echo json_encode(["sucesso" => false, "erro" => "Você não pode excluir sua própria conta por este painel."], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["sucesso" => false, "erro" => "Conta inválida ou protegida."], JSON_UNESCAPED_UNICODE);
             exit;
         }
 
@@ -134,17 +114,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $idEndereco = $alvoUser["idEndereco"] !== null ? (int) $alvoUser["idEndereco"] : null;
             $fotoPerfil = trim((string) ($alvoUser["fotoPerfil"] ?? ""));
-            $imagensPostsParaApagar = [];
+            $imagensPosts = [];
 
             $conexao->begin_transaction();
 
-            // 1. Remove curtidas feitas pelo usuário
             $stmt = $conexao->prepare("DELETE FROM curtidas WHERE idMUsuario = ?");
             $stmt->bind_param("i", $alvoId);
             $stmt->execute();
             $stmt->close();
 
-            // 2. Se for UsuarioComum, limpa causas, comentários, favoritos e doações
             $stmtUc = $conexao->prepare("SELECT idUsuarioComum FROM UsuarioComum WHERE idMoldeUsuario = ? LIMIT 1");
             $stmtUc->bind_param("i", $alvoId);
             $stmtUc->execute();
@@ -165,7 +143,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmtDelUc->close();
             }
 
-            // 3. Se for ONG, limpa atividades, favoritos, posts, campanhas e doações recebidas
             $stmtOng = $conexao->prepare("SELECT idONG FROM ONGs WHERE idMoldeUsuario = ? LIMIT 1");
             $stmtOng->bind_param("i", $alvoId);
             $stmtOng->execute();
@@ -175,7 +152,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($ong) {
                 $idONG = (int) $ong["idONG"];
 
-                // Coleta imagens dos posts da ONG antes de apagar os registros
                 $stmtImgs = $conexao->prepare("
                     SELECT p.conteudo
                     FROM posts p
@@ -186,88 +162,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmtImgs->execute();
                 $resImgs = $stmtImgs->get_result();
                 while ($imgRow = $resImgs->fetch_assoc()) {
-                    $imagensPostsParaApagar[] = $imgRow["conteudo"];
+                    $imagensPosts[] = $imgRow["conteudo"];
                 }
                 $stmtImgs->close();
 
-                $stmt = $conexao->prepare("DELETE FROM atividades WHERE idONG = ?");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("DELETE FROM favoritos WHERE idONG = ?");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("
-                    DELETE c FROM comentarios c
-                    INNER JOIN posts p ON c.idPost = p.idPost
-                    WHERE p.idONG = ?
-                ");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("
-                    DELETE cu FROM curtidas cu
-                    INNER JOIN posts p ON cu.idPost = p.idPost
-                    WHERE p.idONG = ?
-                ");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("DELETE FROM posts WHERE idONG = ?");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("
-                    DELETE p FROM posts p
-                    INNER JOIN campanhas ca ON p.idCampanha = ca.idCampanha
-                    WHERE ca.idONG = ?
-                ");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("
-                    DELETE cc FROM campanhaCausas cc
-                    INNER JOIN campanhas ca ON cc.idCampanha = ca.idCampanha
-                    WHERE ca.idONG = ?
-                ");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("
-                    DELETE d FROM doacoes d
-                    INNER JOIN campanhas ca ON d.idCampanha = ca.idCampanha
-                    WHERE ca.idONG = ?
-                ");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("DELETE FROM campanhas WHERE idONG = ?");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
-
-                $stmt = $conexao->prepare("DELETE FROM ONGs WHERE idONG = ?");
-                $stmt->bind_param("i", $idONG);
-                $stmt->execute();
-                $stmt->close();
+                foreach ([
+                    "DELETE FROM atividades WHERE idONG = ?",
+                    "DELETE FROM favoritos WHERE idONG = ?",
+                    "DELETE c FROM comentarios c INNER JOIN posts p ON c.idPost = p.idPost WHERE p.idONG = ?",
+                    "DELETE cu FROM curtidas cu INNER JOIN posts p ON cu.idPost = p.idPost WHERE p.idONG = ?",
+                    "DELETE FROM posts WHERE idONG = ?",
+                    "DELETE p FROM posts p INNER JOIN campanhas ca ON p.idCampanha = ca.idCampanha WHERE ca.idONG = ?",
+                    "DELETE cc FROM campanhaCausas cc INNER JOIN campanhas ca ON cc.idCampanha = ca.idCampanha WHERE ca.idONG = ?",
+                    "DELETE d FROM doacoes d INNER JOIN campanhas ca ON d.idCampanha = ca.idCampanha WHERE ca.idONG = ?",
+                    "DELETE FROM campanhas WHERE idONG = ?",
+                    "DELETE FROM ONGs WHERE idONG = ?"
+                ] as $queryOng) {
+                    $stmtTmp = $conexao->prepare($queryOng);
+                    $stmtTmp->bind_param("i", $idONG);
+                    $stmtTmp->execute();
+                    $stmtTmp->close();
+                }
             }
 
-            // 4. Exclui o registro base em MoldeUsuario
             $stmtDelBase = $conexao->prepare("DELETE FROM MoldeUsuario WHERE idMUsuario = ?");
             $stmtDelBase->bind_param("i", $alvoId);
             $stmtDelBase->execute();
             $stmtDelBase->close();
 
-            // 5. Remove endereço órfão se existir
             if ($idEndereco !== null && $idEndereco > 0) {
                 $stmtEnd = $conexao->prepare("SELECT COUNT(*) AS total FROM MoldeUsuario WHERE idEndereco = ?");
                 $stmtEnd->bind_param("i", $idEndereco);
@@ -285,15 +207,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $conexao->commit();
 
-            // Remove arquivos físicos
-            foreach ($imagensPostsParaApagar as $imgPost) {
-                apagarArquivoImagemPost($imgPost);
+            foreach ($imagensPosts as $img) {
+                apagarArquivoImagemPost($img);
             }
-
             if ($fotoPerfil !== "" && !str_contains($fotoPerfil, "ftPerfil.jpg") && !str_contains($fotoPerfil, "holder.jpg")) {
-                $arquivoFoto = __DIR__ . "/../" . ltrim(str_replace("../", "", $fotoPerfil), "/");
-                if (is_file($arquivoFoto)) {
-                    @unlink($arquivoFoto);
+                $arqFoto = __DIR__ . "/../" . ltrim(str_replace("../", "", $fotoPerfil), "/");
+                if (is_file($arqFoto)) {
+                    @unlink($arqFoto);
                 }
             }
 
@@ -302,14 +222,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($conexao->errno) {
                 $conexao->rollback();
             }
-            error_log("Erro admin ao excluir usuário: " . $e->getMessage());
             http_response_code(500);
-            echo json_encode(["sucesso" => false, "erro" => "Erro ao excluir a conta no banco."], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["sucesso" => false, "erro" => "Erro ao remover conta."], JSON_UNESCAPED_UNICODE);
         }
         exit;
     }
 
-    // AÇÃO C: EXCLUIR CAMPANHA
     if ($acao === "excluir_campanha") {
         $idCampanha = (int) ($payload["idCampanha"] ?? 0);
         if ($idCampanha <= 0) {
@@ -331,43 +249,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $conexao->begin_transaction();
 
-            $stmt = $conexao->prepare("
-                DELETE c FROM comentarios c
-                INNER JOIN posts p ON c.idPost = p.idPost
-                WHERE p.idCampanha = ?
-            ");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conexao->prepare("
-                DELETE cu FROM curtidas cu
-                INNER JOIN posts p ON cu.idPost = p.idPost
-                WHERE p.idCampanha = ?
-            ");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conexao->prepare("DELETE FROM posts WHERE idCampanha = ?");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conexao->prepare("DELETE FROM campanhaCausas WHERE idCampanha = ?");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conexao->prepare("DELETE FROM doacoes WHERE idCampanha = ?");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conexao->prepare("DELETE FROM campanhas WHERE idCampanha = ?");
-            $stmt->bind_param("i", $idCampanha);
-            $stmt->execute();
-            $stmt->close();
+            foreach ([
+                "DELETE c FROM comentarios c INNER JOIN posts p ON c.idPost = p.idPost WHERE p.idCampanha = ?",
+                "DELETE cu FROM curtidas cu INNER JOIN posts p ON cu.idPost = p.idPost WHERE p.idCampanha = ?",
+                "DELETE FROM posts WHERE idCampanha = ?",
+                "DELETE FROM campanhaCausas WHERE idCampanha = ?",
+                "DELETE FROM doacoes WHERE idCampanha = ?",
+                "DELETE FROM campanhas WHERE idCampanha = ?"
+            ] as $sqlDelCamp) {
+                $stmtC = $conexao->prepare($sqlDelCamp);
+                $stmtC->bind_param("i", $idCampanha);
+                $stmtC->execute();
+                $stmtC->close();
+            }
 
             $conexao->commit();
 
@@ -381,21 +275,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $conexao->rollback();
             }
             http_response_code(500);
-            echo json_encode(["sucesso" => false, "erro" => "Erro ao excluir campanha."], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["sucesso" => false, "erro" => "Erro ao remover campanha."], JSON_UNESCAPED_UNICODE);
         }
         exit;
     }
 
     http_response_code(400);
-    echo json_encode(["sucesso" => false, "erro" => "Ação desconhecida."], JSON_UNESCAPED_UNICODE);
+    echo json_encode(["sucesso" => false, "erro" => "Ação inválida."], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 // =========================================================
-// 3. CONSULTAS PARA EXIBIÇÃO DO PAINEL
+// MÉTRICAS E INDICADORES GLOBAIS DA PLATAFORMA
 // =========================================================
-
-// Atualiza campanhas expiradas
 $conexao->query("
     UPDATE campanhas
     SET status = 'inativa'
@@ -404,31 +296,92 @@ $conexao->query("
       AND dataFim <= NOW()
 ");
 
-// Totais globais
-$totalUsuarios = (int) ($conexao->query("SELECT COUNT(*) AS t FROM MoldeUsuario")->fetch_assoc()["t"] ?? 0);
-$totalOngs = (int) ($conexao->query("SELECT COUNT(*) AS t FROM ONGs")->fetch_assoc()["t"] ?? 0);
-$totalCampanhas = (int) ($conexao->query("SELECT COUNT(*) AS t FROM campanhas")->fetch_assoc()["t"] ?? 0);
-$totalPosts = (int) ($conexao->query("SELECT COUNT(*) AS t FROM posts")->fetch_assoc()["t"] ?? 0);
-$totalMovimentado = (float) ($conexao->query("SELECT COALESCE(SUM(valor), 0) AS t FROM doacoes")->fetch_assoc()["t"] ?? 0);
-$totalDoacoesQtd = (int) ($conexao->query("SELECT COUNT(*) AS t FROM doacoes")->fetch_assoc()["t"] ?? 0);
+// 1. Métricas financeiras
+$fin = $conexao->query("
+    SELECT
+        COALESCE(SUM(valor), 0) AS totalArrecadado,
+        COUNT(*) AS totalDoacoes,
+        COUNT(DISTINCT idUsuarioComum) AS doadoresAtivos,
+        COALESCE(AVG(valor), 0) AS ticketMedio,
+        COALESCE(MAX(valor), 0) AS maiorDoacao
+    FROM doacoes
+")->fetch_assoc();
 
-// Lista de ONGs cadastradas
-$listaOngs = [];
-$sqlOngs = "
+$totalArrecadado = (float) ($fin["totalArrecadado"] ?? 0);
+$totalDoacoes = (int) ($fin["totalDoacoes"] ?? 0);
+$doadoresAtivos = (int) ($fin["doadoresAtivos"] ?? 0);
+$ticketMedio = (float) ($fin["ticketMedio"] ?? 0);
+$maiorDoacao = (float) ($fin["maiorDoacao"] ?? 0);
+
+// 2. Métricas de contas
+$totalUsuariosGeral = (int) ($conexao->query("SELECT COUNT(*) AS t FROM MoldeUsuario")->fetch_assoc()["t"] ?? 0);
+$totalOngs = (int) ($conexao->query("SELECT COUNT(*) AS t FROM ONGs")->fetch_assoc()["t"] ?? 0);
+$totalAdmins = (int) ($conexao->query("SELECT COUNT(*) AS t FROM MoldeUsuario WHERE nivelDeSeguranca = 3")->fetch_assoc()["t"] ?? 0);
+$totalDoadoresCadastrados = max(0, $totalUsuariosGeral - $totalOngs - $totalAdmins);
+
+$taxaConversaoDoadores = $totalDoadoresCadastrados > 0
+    ? round(($doadoresAtivos / $totalDoadoresCadastrados) * 100)
+    : 0;
+
+// 3. Métricas de campanhas e metas
+$campStats = $conexao->query("
+    SELECT
+        COUNT(*) AS totalCampanhas,
+        SUM(CASE WHEN status = 'ativa' THEN 1 ELSE 0 END) AS ativas,
+        COALESCE(SUM(meta), 0) AS somaMetas
+    FROM campanhas
+")->fetch_assoc();
+
+$totalCampanhas = (int) ($campStats["totalCampanhas"] ?? 0);
+$campanhasAtivas = (int) ($campStats["ativas"] ?? 0);
+$somaMetas = (float) ($campStats["somaMetas"] ?? 0);
+$atingimentoGlobalMetas = $somaMetas > 0 ? min(100, round(($totalArrecadado / $somaMetas) * 100)) : 0;
+
+// 4. Métricas de engajamento social
+$totalPosts = (int) ($conexao->query("SELECT COUNT(*) AS t FROM posts")->fetch_assoc()["t"] ?? 0);
+$totalCurtidas = (int) ($conexao->query("SELECT COUNT(*) AS t FROM curtidas")->fetch_assoc()["t"] ?? 0);
+$totalComentarios = (int) ($conexao->query("SELECT COUNT(*) AS t FROM comentarios")->fetch_assoc()["t"] ?? 0);
+$totalFavoritos = (int) ($conexao->query("SELECT COUNT(*) AS t FROM favoritos")->fetch_assoc()["t"] ?? 0);
+
+// 5. Gráfico: Arrecadação mensal (últimos 6 meses)
+$arrecadacaoMensal = [];
+$maxMensal = 0.0;
+$resMensal = $conexao->query("
+    SELECT
+        DATE_FORMAT(dataDoacao, '%Y-%m') AS mesAno,
+        DATE_FORMAT(dataDoacao, '%m/%Y') AS labelMes,
+        COALESCE(SUM(valor), 0) AS totalMes,
+        COUNT(*) AS qtdMes
+    FROM doacoes
+    GROUP BY mesAno, labelMes
+    ORDER BY mesAno DESC
+    LIMIT 6
+");
+if ($resMensal) {
+    while ($row = $resMensal->fetch_assoc()) {
+        $val = (float) $row["totalMes"];
+        if ($val > $maxMensal) {
+            $maxMensal = $val;
+        }
+        $arrecadacaoMensal[] = $row;
+    }
+    $arrecadacaoMensal = array_reverse($arrecadacaoMensal);
+}
+
+// 6. Ranking de ONGs por Arrecadação e Engajamento
+$rankingOngs = [];
+$maxOngArrecadado = 0.0;
+$resOngs = $conexao->query("
     SELECT
         o.idONG,
         o.idMoldeUsuario,
-        o.descricao,
         o.CNPJ,
-        o.Website,
         mu.nome,
         mu.email,
-        mu.telefone,
         mu.fotoPerfil,
-        mu.dataCriacao,
-        mu.nivelDeSeguranca,
         (SELECT COUNT(*) FROM campanhas c WHERE c.idONG = o.idONG) AS qtdCampanhas,
         (SELECT COUNT(*) FROM posts p WHERE p.idONG = o.idONG) AS qtdPosts,
+        (SELECT COUNT(*) FROM favoritos f WHERE f.idONG = o.idONG) AS qtdFavoritos,
         COALESCE((
             SELECT SUM(d.valor)
             FROM doacoes d
@@ -437,37 +390,59 @@ $sqlOngs = "
         ), 0) AS totalArrecadado
     FROM ONGs o
     INNER JOIN MoldeUsuario mu ON mu.idMUsuario = o.idMoldeUsuario
-    ORDER BY mu.dataCriacao DESC
-";
-$resOngs = $conexao->query($sqlOngs);
+    ORDER BY totalArrecadado DESC, mu.nome ASC
+");
 if ($resOngs) {
     while ($row = $resOngs->fetch_assoc()) {
         $row["foto_url"] = normalizarFotoAdmin($row["fotoPerfil"]);
-        $listaOngs[] = $row;
+        $val = (float) $row["totalArrecadado"];
+        if ($val > $maxOngArrecadado) {
+            $maxOngArrecadado = $val;
+        }
+        $rankingOngs[] = $row;
     }
 }
 
-// Lista de Todos os Usuários
+// 7. Auditoria: Últimas 10 doações da plataforma
+$ultimasDoacoes = [];
+$resUltimas = $conexao->query("
+    SELECT
+        d.idDoacao,
+        d.valor,
+        d.dataDoacao,
+        muDoador.nome AS nomeDoador,
+        muOng.nome AS nomeONG,
+        c.titulo AS tituloCampanha
+    FROM doacoes d
+    INNER JOIN UsuarioComum uc ON uc.idUsuarioComum = d.idUsuarioComum
+    INNER JOIN MoldeUsuario muDoador ON muDoador.idMUsuario = uc.idMoldeUsuario
+    INNER JOIN campanhas c ON c.idCampanha = d.idCampanha
+    INNER JOIN ONGs o ON o.idONG = c.idONG
+    INNER JOIN MoldeUsuario muOng ON muOng.idMUsuario = o.idMoldeUsuario
+    ORDER BY d.dataDoacao DESC, d.idDoacao DESC
+    LIMIT 10
+");
+if ($resUltimas) {
+    while ($row = $resUltimas->fetch_assoc()) {
+        $ultimasDoacoes[] = $row;
+    }
+}
+
+// 8. Listas para Moderação (Contas e Campanhas)
 $listaUsuarios = [];
-$sqlUsuarios = "
+$resUsers = $conexao->query("
     SELECT
         mu.idMUsuario,
         mu.nome,
         mu.email,
-        mu.telefone,
         mu.fotoPerfil,
         mu.dataCriacao,
         mu.nivelDeSeguranca,
-        uc.idUsuarioComum,
-        uc.CPF,
-        o.idONG,
-        o.CNPJ
+        o.idONG
     FROM MoldeUsuario mu
-    LEFT JOIN UsuarioComum uc ON uc.idMoldeUsuario = mu.idMUsuario
     LEFT JOIN ONGs o ON o.idMoldeUsuario = mu.idMUsuario
     ORDER BY mu.nivelDeSeguranca DESC, mu.dataCriacao DESC
-";
-$resUsers = $conexao->query($sqlUsuarios);
+");
 if ($resUsers) {
     while ($row = $resUsers->fetch_assoc()) {
         $row["foto_url"] = normalizarFotoAdmin($row["fotoPerfil"]);
@@ -475,34 +450,24 @@ if ($resUsers) {
     }
 }
 
-// Lista de Campanhas da Plataforma
 $listaCampanhas = [];
-$sqlCampanhas = "
+$resCamp = $conexao->query("
     SELECT
         c.idCampanha,
         c.titulo,
         c.meta,
-        c.dataInicio,
-        c.dataFim,
         c.status,
         mu.nome AS nomeONG,
-        COALESCE(SUM(d.valor), 0) AS arrecadado,
-        COUNT(d.idDoacao) AS qtdDoacoes
+        COALESCE(SUM(d.valor), 0) AS arrecadado
     FROM campanhas c
     INNER JOIN ONGs o ON o.idONG = c.idONG
     INNER JOIN MoldeUsuario mu ON mu.idMUsuario = o.idMoldeUsuario
     LEFT JOIN doacoes d ON d.idCampanha = c.idCampanha
-    GROUP BY c.idCampanha, c.titulo, c.meta, c.dataInicio, c.dataFim, c.status, mu.nome
+    GROUP BY c.idCampanha, c.titulo, c.meta, c.status, mu.nome
     ORDER BY (c.status = 'ativa') DESC, c.dataInicio DESC
-";
-$resCamp = $conexao->query($sqlCampanhas);
+");
 if ($resCamp) {
     while ($row = $resCamp->fetch_assoc()) {
-        $meta = (float) ($row["meta"] ?? 0);
-        $arrec = (float) $row["arrecadado"];
-        $row["meta_float"] = $meta;
-        $row["arrecadado_float"] = $arrec;
-        $row["percentual"] = $meta > 0 ? min(100, round(($arrec / $meta) * 100)) : 0;
         $listaCampanhas[] = $row;
     }
 }
@@ -512,10 +477,10 @@ if ($resCamp) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Bem Conecta</title>
+    <title>Métricas do Sistema - Bem Conecta</title>
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/painelAdmin.css?v=1">
+    <link rel="stylesheet" href="../css/painelAdmin.css?v=2">
 </head>
 <body>
 
@@ -526,142 +491,186 @@ if ($resCamp) {
 
     <main class="admin-main">
 
-        <!-- BANNER BRANCO TRANSLÚCIDO -->
+        <!-- CABEÇALHO DO PAINEL DE MÉTRICAS -->
         <section class="admin-banner">
             <div>
-                <span class="admin-selo">🛡️ Nível de Segurança 3 · Controle Geral</span>
-                <h1>Painel Administrativo</h1>
+                <span class="admin-selo">📊 Central de Métricas & Auditoria</span>
+                <h1>Indicadores da Plataforma</h1>
                 <p>
-                    Olá, <strong><?php echo htmlspecialchars($adminDados["nome"]); ?></strong>.
-                    Gerencie ONGs parceiras, permissões de usuários e campanhas ativas do Bem Conecta.
+                    Monitoramento em tempo real de arrecadações, crescimento da base de usuários, engajamento social e integridade do <strong>Bem Conecta</strong>.
                 </p>
             </div>
 
             <div class="admin-banner-acoes">
-                <a href="criarCampanha.php" class="btn-admin-verde">+ Nova Campanha</a>
-                <a href="criarPost.php" class="btn-admin-outline">+ Nova Publicação</a>
+                <a href="inicialPage.php" class="btn-admin-outline">📰 Auditar Feed</a>
+                <a href="ongs.php" class="btn-admin-outline">🏢 Ver ONGs</a>
             </div>
         </section>
 
         <!-- 4 KPI CARDS EM VIDRO LÍQUIDO -->
-        <section class="admin-kpi-grid" aria-label="Resumo da Plataforma">
+        <section class="admin-kpi-grid" aria-label="Indicadores Principais">
             <article class="kpi-vidro">
-                <span class="kpi-label">👥 Contas Cadastradas</span>
-                <strong class="kpi-numero"><?php echo $totalUsuarios; ?></strong>
-                <small>Usuários comuns, ONGs e admins</small>
+                <span class="kpi-label">💰 Volume Total Movimentado</span>
+                <strong class="kpi-numero destaque">R$ <?php echo number_format($totalArrecadado, 2, ',', '.'); ?></strong>
+                <small><?php echo $totalDoacoes; ?> doações · Ticket médio de R$ <?php echo number_format($ticketMedio, 2, ',', '.'); ?></small>
             </article>
 
             <article class="kpi-vidro">
-                <span class="kpi-label">🏢 ONGs Parceiras</span>
-                <strong class="kpi-numero"><?php echo $totalOngs; ?></strong>
-                <small>Organizações registradas no sistema</small>
+                <span class="kpi-label">👥 Ecossistema de Contas</span>
+                <strong class="kpi-numero"><?php echo $totalUsuariosGeral; ?></strong>
+                <small><?php echo $totalDoadoresCadastrados; ?> doador(es) · <?php echo $totalOngs; ?> ONG(s) · <?php echo $totalAdmins; ?> admin(s)</small>
             </article>
 
             <article class="kpi-vidro">
-                <span class="kpi-label">🎯 Campanhas & Posts</span>
-                <strong class="kpi-numero"><?php echo $totalCampanhas; ?> <small>/ <?php echo $totalPosts; ?> posts</small></strong>
-                <small>Ações sociais divulgadas</small>
+                <span class="kpi-label">🎯 Desempenho de Campanhas</span>
+                <strong class="kpi-numero"><?php echo $campanhasAtivas; ?> <small>ativas / <?php echo $totalCampanhas; ?></small></strong>
+                <small><?php echo $atingimentoGlobalMetas; ?>% da meta global atingida</small>
             </article>
 
             <article class="kpi-vidro">
-                <span class="kpi-label">💰 Total Movimentado</span>
-                <strong class="kpi-numero destaque">R$ <?php echo number_format($totalMovimentado, 2, ',', '.'); ?></strong>
-                <small><?php echo $totalDoacoesQtd; ?> doação(ões) registrada(s)</small>
+                <span class="kpi-label">💬 Engajamento da Rede</span>
+                <strong class="kpi-numero"><?php echo ($totalCurtidas + $totalComentarios + $totalFavoritos); ?></strong>
+                <small>❤️ <?php echo $totalCurtidas; ?> curtidas · 💬 <?php echo $totalComentarios; ?> coment. · 📌 <?php echo $totalFavoritos; ?> fav.</small>
             </article>
         </section>
 
-        <!-- CONTAINER PRINCIPAL DE GERENCIAMENTO -->
-        <section class="admin-painel-card">
+        <!-- BLOCO DE GRÁFICOS ANALÍTICOS -->
+        <section class="metricas-dupla">
 
-            <!-- ABAS DE NAVEGAÇÃO -->
+            <!-- GRÁFICO 1: EVOLUÇÃO MENSAL DE DOAÇÕES -->
+            <article class="card-branco-vidro">
+                <div class="card-titulo-bloco">
+                    <h2>📈 Arrecadação Mensal (Últimos 6 Meses)</h2>
+                    <p>Evolução financeira das doações confirmadas na plataforma.</p>
+                </div>
+
+                <?php if (empty($arrecadacaoMensal)): ?>
+                    <p class="admin-vazio">Ainda não há histórico mensal de doações para exibir o gráfico.</p>
+                <?php else: ?>
+                    <div class="grafico-colunas">
+                        <?php foreach ($arrecadacaoMensal as $mes): ?>
+                            <?php
+                                $valorMes = (float) $mes["totalMes"];
+                                $alturaPct = $maxMensal > 0 ? max(12, round(($valorMes / $maxMensal) * 100)) : 12;
+                            ?>
+                            <div class="coluna-item">
+                                <span class="coluna-valor">R$ <?php echo number_format($valorMes, 0, ',', '.'); ?></span>
+                                <div class="coluna-trilho">
+                                    <div class="coluna-barra" style="height: <?php echo $alturaPct; ?>%;" title="<?php echo (int) $mes['qtdMes']; ?> doação(ões)"></div>
+                                </div>
+                                <span class="coluna-label"><?php echo htmlspecialchars($mes["labelMes"]); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="mini-metricas-rodape">
+                    <div>
+                        <span>Taxa de Doadores Ativos</span>
+                        <strong><?php echo $taxaConversaoDoadores; ?>%</strong>
+                    </div>
+                    <div>
+                        <span>Maior Doação Única</span>
+                        <strong>R$ <?php echo number_format($maiorDoacao, 2, ',', '.'); ?></strong>
+                    </div>
+                    <div>
+                        <span>Publicações Totais</span>
+                        <strong><?php echo $totalPosts; ?> post(s)</strong>
+                    </div>
+                </div>
+            </article>
+
+            <!-- GRÁFICO 2: RANKING DE ARRECADAÇÃO POR ONG -->
+            <article class="card-branco-vidro">
+                <div class="card-titulo-bloco">
+                    <h2>🏆 Participação por ONG</h2>
+                    <p>Comparativo de recursos captados e seguidores favoritos por instituição.</p>
+                </div>
+
+                <?php if (empty($rankingOngs)): ?>
+                    <p class="admin-vazio">Nenhuma ONG cadastrada ainda.</p>
+                <?php else: ?>
+                    <div class="ranking-barras-lista">
+                        <?php foreach ($rankingOngs as $ong): ?>
+                            <?php
+                                $arrecOng = (float) $ong["totalArrecadado"];
+                                $larguraPct = $maxOngArrecadado > 0 ? round(($arrecOng / $maxOngArrecadado) * 100) : 0;
+                            ?>
+                            <div class="ranking-barra-item">
+                                <div class="ranking-barra-topo">
+                                    <div class="ranking-ong-nome">
+                                        <img
+                                            src="<?php echo htmlspecialchars($ong["foto_url"], ENT_QUOTES, 'UTF-8'); ?>"
+                                            alt="Logo"
+                                            onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
+                                        >
+                                        <strong><?php echo htmlspecialchars($ong["nome"]); ?></strong>
+                                    </div>
+                                    <span class="ranking-ong-valor">
+                                        R$ <?php echo number_format($arrecOng, 2, ',', '.'); ?>
+                                        <small>(📌 <?php echo (int) $ong["qtdFavoritos"]; ?>)</small>
+                                    </span>
+                                </div>
+                                <div class="barra-horizontal-trilho">
+                                    <div class="barra-horizontal-fill" style="width: <?php echo $larguraPct; ?>%;"></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </article>
+
+        </section>
+
+        <!-- AUDITORIA + MODERAÇÃO ENXUTA -->
+        <section class="admin-painel-card">
             <div class="admin-tabs" role="tablist">
-                <button type="button" class="admin-tab ativo" data-tab="aba-ongs">
-                    🏢 Gerenciar ONGs (<span id="contOngsTab"><?php echo count($listaOngs); ?></span>)
+                <button type="button" class="admin-tab ativo" data-tab="aba-auditoria">
+                    🧾 Auditoria de Doações (<?php echo count($ultimasDoacoes); ?>)
                 </button>
                 <button type="button" class="admin-tab" data-tab="aba-usuarios">
-                    👥 Gerenciar Usuários (<span id="contUsuariosTab"><?php echo count($listaUsuarios); ?></span>)
+                    👥 Controle de Contas (<?php echo count($listaUsuarios); ?>)
                 </button>
                 <button type="button" class="admin-tab" data-tab="aba-campanhas">
-                    🎯 Gerenciar Campanhas (<span id="contCampanhasTab"><?php echo count($listaCampanhas); ?></span>)
+                    🎯 Moderação de Campanhas (<?php echo count($listaCampanhas); ?>)
                 </button>
             </div>
 
-            <!-- ABA 1: ONGs -->
-            <div class="admin-tab-conteudo ativo" id="aba-ongs">
-                <div class="admin-filtros">
-                    <input
-                        type="search"
-                        id="buscaOngs"
-                        class="admin-input"
-                        placeholder="🔎 Pesquisar ONG por nome, CNPJ ou e-mail..."
-                    >
-                </div>
-
-                <?php if (empty($listaOngs)): ?>
-                    <p class="admin-vazio">Nenhuma ONG cadastrada no sistema.</p>
+            <!-- ABA 1: AUDITORIA DE TRANSAÇÕES -->
+            <div class="admin-tab-conteudo ativo" id="aba-auditoria">
+                <?php if (empty($ultimasDoacoes)): ?>
+                    <p class="admin-vazio">Nenhuma transação registrada na plataforma até o momento.</p>
                 <?php else: ?>
-                    <div class="admin-lista" id="listaOngsAdmin">
-                        <?php foreach ($listaOngs as $ong): ?>
-                            <?php
-                                $buscaOng = mb_strtolower($ong["nome"] . " " . $ong["CNPJ"] . " " . $ong["email"], "UTF-8");
-                            ?>
-                            <article
-                                class="admin-row-card"
-                                data-busca="<?php echo htmlspecialchars($buscaOng, ENT_QUOTES, 'UTF-8'); ?>"
-                                data-musuario-id="<?php echo (int) $ong["idMoldeUsuario"]; ?>"
-                            >
-                                <div class="row-identidade">
-                                    <img
-                                        src="<?php echo htmlspecialchars($ong["foto_url"], ENT_QUOTES, 'UTF-8'); ?>"
-                                        alt="Logo ONG"
-                                        onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
-                                    >
-                                    <div class="row-info">
-                                        <h3><?php echo htmlspecialchars($ong["nome"]); ?></h3>
-                                        <span>📧 <?php echo htmlspecialchars($ong["email"]); ?> · 🪪 CNPJ: <strong><?php echo htmlspecialchars($ong["CNPJ"]); ?></strong></span>
-                                        <small><?php echo htmlspecialchars(mb_strimwidth($ong["descricao"], 0, 120, "...")); ?></small>
-                                    </div>
+                    <div class="admin-lista">
+                        <?php foreach ($ultimasDoacoes as $d): ?>
+                            <article class="admin-row-card">
+                                <div class="row-info">
+                                    <h3>
+                                        <?php echo htmlspecialchars($d["nomeDoador"]); ?>
+                                        <span style="font-weight: 400; color: #555;">apoiou</span>
+                                        <?php echo htmlspecialchars($d["nomeONG"]); ?>
+                                    </h3>
+                                    <span>🎯 Campanha: <strong><?php echo htmlspecialchars($d["tituloCampanha"]); ?></strong></span>
+                                    <small>🕒 <?php echo date("d/m/Y \à\s H:i", strtotime($d["dataDoacao"])); ?> · Registro #<?php echo (int) $d["idDoacao"]; ?></small>
                                 </div>
-
-                                <div class="row-metricas">
-                                    <span class="pill-verde">💰 R$ <?php echo number_format((float) $ong["totalArrecadado"], 2, ',', '.'); ?></span>
-                                    <span class="pill-cinza">🎯 <?php echo (int) $ong["qtdCampanhas"]; ?> campanha(s) · 📰 <?php echo (int) $ong["qtdPosts"]; ?> post(s)</span>
-                                </div>
-
-                                <div class="row-acoes">
-                                    <a href="perfilONG.php?idONG=<?php echo (int) $ong["idONG"]; ?>" class="btn-row-ver">
-                                        👁️ Ver Perfil
-                                    </a>
-                                    <button
-                                        type="button"
-                                        class="btn-row-excluir btn-excluir-conta-admin"
-                                        data-id="<?php echo (int) $ong["idMoldeUsuario"]; ?>"
-                                        data-nome="<?php echo htmlspecialchars($ong["nome"], ENT_QUOTES, 'UTF-8'); ?>"
-                                    >
-                                        🗑️ Excluir ONG
-                                    </button>
-                                </div>
+                                <span class="pill-verde">
+                                    + R$ <?php echo number_format((float) $d["valor"], 2, ',', '.'); ?>
+                                </span>
                             </article>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <!-- ABA 2: USUÁRIOS -->
+            <!-- ABA 2: CONTROLE DE CONTAS -->
             <div class="admin-tab-conteudo" id="aba-usuarios">
                 <div class="admin-filtros duplo">
-                    <input
-                        type="search"
-                        id="buscaUsuarios"
-                        class="admin-input"
-                        placeholder="🔎 Pesquisar usuário por nome, e-mail, CPF ou CNPJ..."
-                    >
-
+                    <input type="search" id="buscaUsuarios" class="admin-input" placeholder="🔎 Filtrar por nome ou e-mail...">
                     <select id="filtroNivelUsuario" class="admin-select">
                         <option value="todos">Todos os perfis</option>
-                        <option value="3">🛡️ Administradores (Nível 3)</option>
-                        <option value="2">🏢 ONGs (Nível 2)</option>
-                        <option value="1">👤 Usuários Comuns (Nível 1)</option>
+                        <option value="3">🛡️ Administradores</option>
+                        <option value="2">🏢 ONGs</option>
+                        <option value="1">👤 Doadores</option>
                     </select>
                 </div>
 
@@ -670,18 +679,17 @@ if ($resCamp) {
                         <?php
                             $idM = (int) $u["idMUsuario"];
                             $nivelU = (int) $u["nivelDeSeguranca"];
-                            $ehProprioAdmin = ($idM === $adminId);
-                            $doc = $u["CNPJ"] ? "CNPJ: " . $u["CNPJ"] : ($u["CPF"] ? "CPF: " . $u["CPF"] : "Sem documento");
-                            $buscaUser = mb_strtolower($u["nome"] . " " . $u["email"] . " " . $doc, "UTF-8");
+                            $ehProprio = ($idM === $adminId);
+                            $buscaUser = mb_strtolower($u["nome"] . " " . $u["email"], "UTF-8");
 
                             if ($nivelU === 3) {
-                                $badgeTexto = "🛡️ Administrador";
+                                $badgeTexto = "🛡️ Admin";
                                 $badgeClasse = "badge-admin";
                             } elseif ($nivelU === 2 || $u["idONG"] !== null) {
                                 $badgeTexto = "🏢 ONG";
                                 $badgeClasse = "badge-ong";
                             } else {
-                                $badgeTexto = "👤 Usuário Comum";
+                                $badgeTexto = "👤 Doador";
                                 $badgeClasse = "badge-comum";
                             }
                         ?>
@@ -694,56 +702,39 @@ if ($resCamp) {
                             <div class="row-identidade">
                                 <img
                                     src="<?php echo htmlspecialchars($u["foto_url"], ENT_QUOTES, 'UTF-8'); ?>"
-                                    alt="Foto usuário"
+                                    alt="Avatar"
                                     onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
                                 >
                                 <div class="row-info">
                                     <div class="row-titulo-linha">
                                         <h3><?php echo htmlspecialchars($u["nome"]); ?></h3>
                                         <span class="badge-nivel <?php echo $badgeClasse; ?>"><?php echo $badgeTexto; ?></span>
-                                        <?php if ($ehProprioAdmin): ?>
-                                            <span class="badge-voce">Você</span>
-                                        <?php endif; ?>
                                     </div>
-                                    <span>📧 <?php echo htmlspecialchars($u["email"]); ?> · 🪪 <?php echo htmlspecialchars($doc); ?></span>
-                                    <small>📅 Cadastro em <?php echo date("d/m/Y", strtotime($u["dataCriacao"])); ?> · 📞 <?php echo htmlspecialchars($u["telefone"] ?: "-"); ?></small>
+                                    <span>📧 <?php echo htmlspecialchars($u["email"]); ?> · Cadastro em <?php echo date("d/m/Y", strtotime($u["dataCriacao"])); ?></span>
                                 </div>
                             </div>
 
                             <div class="row-acoes">
-                                <?php if (!$ehProprioAdmin): ?>
-                                    <?php if ($nivelU === 3): ?>
-                                        <button
-                                            type="button"
-                                            class="btn-row-nivel btn-alterar-nivel"
-                                            data-id="<?php echo $idM; ?>"
-                                            data-novo-nivel="1"
-                                            data-nome="<?php echo htmlspecialchars($u["nome"], ENT_QUOTES, 'UTF-8'); ?>"
-                                        >
-                                            ⬇️ Remover Admin
-                                        </button>
-                                    <?php else: ?>
-                                        <button
-                                            type="button"
-                                            class="btn-row-promover btn-alterar-nivel"
-                                            data-id="<?php echo $idM; ?>"
-                                            data-novo-nivel="3"
-                                            data-nome="<?php echo htmlspecialchars($u["nome"], ENT_QUOTES, 'UTF-8'); ?>"
-                                        >
-                                            ⬆️ Tornar Admin
-                                        </button>
-                                    <?php endif; ?>
-
+                                <?php if (!$ehProprio): ?>
+                                    <button
+                                        type="button"
+                                        class="<?php echo $nivelU === 3 ? 'btn-row-nivel' : 'btn-row-promover'; ?> btn-alterar-nivel"
+                                        data-id="<?php echo $idM; ?>"
+                                        data-novo-nivel="<?php echo $nivelU === 3 ? 1 : 3; ?>"
+                                        data-nome="<?php echo htmlspecialchars($u["nome"], ENT_QUOTES, 'UTF-8'); ?>"
+                                    >
+                                        <?php echo $nivelU === 3 ? '⬇️ Remover Admin' : '⬆️ Tornar Admin'; ?>
+                                    </button>
                                     <button
                                         type="button"
                                         class="btn-row-excluir btn-excluir-conta-admin"
                                         data-id="<?php echo $idM; ?>"
                                         data-nome="<?php echo htmlspecialchars($u["nome"], ENT_QUOTES, 'UTF-8'); ?>"
                                     >
-                                        🗑️ Excluir
+                                        🗑️ Remover
                                     </button>
                                 <?php else: ?>
-                                    <span class="texto-protegido">Conta atual protegida</span>
+                                    <span class="texto-protegido">Sessão atual</span>
                                 <?php endif; ?>
                             </div>
                         </article>
@@ -751,73 +742,43 @@ if ($resCamp) {
                 </div>
             </div>
 
-            <!-- ABA 3: CAMPANHAS -->
+            <!-- ABA 3: MODERAÇÃO DE CAMPANHAS -->
             <div class="admin-tab-conteudo" id="aba-campanhas">
-                <div class="admin-filtros">
-                    <input
-                        type="search"
-                        id="buscaCampanhas"
-                        class="admin-input"
-                        placeholder="🔎 Pesquisar campanha por título ou ONG..."
-                    >
+                <div class="admin-lista">
+                    <?php foreach ($listaCampanhas as $camp): ?>
+                        <?php $ehAtiva = strtolower((string) $camp["status"]) === "ativa"; ?>
+                        <article class="admin-row-card" data-campanha-id="<?php echo (int) $camp["idCampanha"]; ?>">
+                            <div class="row-info">
+                                <div class="row-titulo-linha">
+                                    <h3><?php echo htmlspecialchars($camp["titulo"]); ?></h3>
+                                    <span class="badge-status-camp <?php echo $ehAtiva ? 'ativa' : 'inativa'; ?>">
+                                        <?php echo $ehAtiva ? '● Ativa' : '○ Inativa'; ?>
+                                    </span>
+                                </div>
+                                <span>🏢 <?php echo htmlspecialchars($camp["nomeONG"]); ?> · 💰 R$ <?php echo number_format((float) $camp["arrecadado"], 2, ',', '.'); ?></span>
+                            </div>
+
+                            <div class="row-acoes">
+                                <button
+                                    type="button"
+                                    class="btn-row-excluir btn-excluir-campanha-admin"
+                                    data-id="<?php echo (int) $camp["idCampanha"]; ?>"
+                                    data-titulo="<?php echo htmlspecialchars($camp["titulo"], ENT_QUOTES, 'UTF-8'); ?>"
+                                >
+                                    🗑️ Excluir Campanha
+                                </button>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
                 </div>
-
-                <?php if (empty($listaCampanhas)): ?>
-                    <p class="admin-vazio">Nenhuma campanha cadastrada.</p>
-                <?php else: ?>
-                    <div class="admin-lista" id="listaCampanhasAdmin">
-                        <?php foreach ($listaCampanhas as $camp): ?>
-                            <?php
-                                $ehAtiva = strtolower((string) $camp["status"]) === "ativa";
-                                $buscaCamp = mb_strtolower($camp["titulo"] . " " . $camp["nomeONG"], "UTF-8");
-                            ?>
-                            <article
-                                class="admin-row-card"
-                                data-busca="<?php echo htmlspecialchars($buscaCamp, ENT_QUOTES, 'UTF-8'); ?>"
-                                data-campanha-id="<?php echo (int) $camp["idCampanha"]; ?>"
-                            >
-                                <div class="row-identidade">
-                                    <div class="row-info">
-                                        <div class="row-titulo-linha">
-                                            <h3><?php echo htmlspecialchars($camp["titulo"]); ?></h3>
-                                            <span class="badge-status-camp <?php echo $ehAtiva ? 'ativa' : 'inativa'; ?>">
-                                                <?php echo $ehAtiva ? '● Ativa' : '○ Inativa'; ?>
-                                            </span>
-                                        </div>
-                                        <span>🏢 ONG: <strong><?php echo htmlspecialchars($camp["nomeONG"]); ?></strong></span>
-                                        <small>
-                                            💰 Arrecadado: <strong>R$ <?php echo number_format($camp["arrecadado_float"], 2, ',', '.'); ?></strong>
-                                            <?php if ($camp["meta_float"] > 0): ?>
-                                                de R$ <?php echo number_format($camp["meta_float"], 2, ',', '.'); ?> (<?php echo (int) $camp["percentual"]; ?>%)
-                                            <?php endif; ?>
-                                            · <?php echo (int) $camp["qtdDoacoes"]; ?> doação(ões)
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="row-acoes">
-                                    <button
-                                        type="button"
-                                        class="btn-row-excluir btn-excluir-campanha-admin"
-                                        data-id="<?php echo (int) $camp["idCampanha"]; ?>"
-                                        data-titulo="<?php echo htmlspecialchars($camp["titulo"], ENT_QUOTES, 'UTF-8'); ?>"
-                                    >
-                                        🗑️ Excluir Campanha
-                                    </button>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
             </div>
-
         </section>
+
     </main>
 </div>
 
 <script>
 (function () {
-    // Alternância de Abas
     const tabs = document.querySelectorAll(".admin-tab");
     const conteudos = document.querySelectorAll(".admin-tab-conteudo");
 
@@ -830,22 +791,12 @@ if ($resCamp) {
         });
     });
 
-    // Filtro de ONGs
-    document.getElementById("buscaOngs")?.addEventListener("input", function () {
-        const termo = this.value.trim().toLowerCase();
-        document.querySelectorAll("#listaOngsAdmin .admin-row-card").forEach((card) => {
-            card.style.display = (card.dataset.busca || "").includes(termo) ? "flex" : "none";
-        });
-    });
-
-    // Filtro de Usuários
     const buscaUsuarios = document.getElementById("buscaUsuarios");
     const filtroNivel = document.getElementById("filtroNivelUsuario");
 
     function filtrarUsuarios() {
         const termo = (buscaUsuarios?.value || "").trim().toLowerCase();
         const nivel = filtroNivel?.value || "todos";
-
         document.querySelectorAll("#listaUsuariosAdmin .admin-row-card").forEach((card) => {
             const matchTexto = (card.dataset.busca || "").includes(termo);
             const matchNivel = nivel === "todos" || card.dataset.nivel === nivel;
@@ -856,119 +807,69 @@ if ($resCamp) {
     buscaUsuarios?.addEventListener("input", filtrarUsuarios);
     filtroNivel?.addEventListener("change", filtrarUsuarios);
 
-    // Filtro de Campanhas
-    document.getElementById("buscaCampanhas")?.addEventListener("input", function () {
-        const termo = this.value.trim().toLowerCase();
-        document.querySelectorAll("#listaCampanhasAdmin .admin-row-card").forEach((card) => {
-            card.style.display = (card.dataset.busca || "").includes(termo) ? "flex" : "none";
-        });
-    });
-
-    // Promover / Rebaixar Nível Admin
     document.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".btn-alterar-nivel");
-        if (!btn || btn.disabled) return;
+        const btnNivel = e.target.closest(".btn-alterar-nivel");
+        if (btnNivel && !btnNivel.disabled) {
+            const idMUsuario = Number(btnNivel.dataset.id);
+            const novoNivel = Number(btnNivel.dataset.novoNivel);
+            const nome = btnNivel.dataset.nome || "este usuário";
+            if (!confirm(`Confirmar alteração de permissão para "${nome}"?`)) return;
 
-        const idMUsuario = Number(btn.dataset.id);
-        const novoNivel = Number(btn.dataset.novoNivel);
-        const nome = btn.dataset.nome || "este usuário";
-        const acaoTexto = novoNivel === 3
-            ? `promover "${nome}" a Administrador (Nível 3)`
-            : `remover os privilégios de Administrador de "${nome}"`;
-
-        if (!confirm(`Deseja realmente ${acaoTexto}?`)) return;
-
-        btn.disabled = true;
-        try {
+            btnNivel.disabled = true;
             const resp = await fetch("painelAdmin.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ acao: "alterar_nivel", idMUsuario, novoNivel })
             });
             const dados = await resp.json();
-            if (!resp.ok || !dados.sucesso) {
-                alert(dados.erro || "Não foi possível alterar o nível.");
-                btn.disabled = false;
-                return;
+            if (resp.ok && dados.sucesso) {
+                window.location.reload();
+            } else {
+                alert(dados.erro || "Erro ao atualizar nível.");
+                btnNivel.disabled = false;
             }
-            window.location.reload();
-        } catch (err) {
-            alert("Erro de conexão ao atualizar permissão.");
-            btn.disabled = false;
-        }
-    });
-
-    // Excluir Conta (ONG ou Usuário)
-    document.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".btn-excluir-conta-admin");
-        if (!btn || btn.disabled) return;
-
-        const idMUsuario = Number(btn.dataset.id);
-        const nome = btn.dataset.nome || "esta conta";
-
-        if (!confirm(`ATENÇÃO: Deseja excluir permanentemente "${nome}" e todos os registros vinculados?`)) {
-            return;
         }
 
-        btn.disabled = true;
-        btn.textContent = "Excluindo...";
+        const btnConta = e.target.closest(".btn-excluir-conta-admin");
+        if (btnConta && !btnConta.disabled) {
+            const idMUsuario = Number(btnConta.dataset.id);
+            const nome = btnConta.dataset.nome || "esta conta";
+            if (!confirm(`Excluir permanentemente "${nome}" e todos os registros associados?`)) return;
 
-        try {
+            btnConta.disabled = true;
             const resp = await fetch("painelAdmin.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ acao: "excluir_usuario", idMUsuario })
             });
             const dados = await resp.json();
-
-            if (!resp.ok || !dados.sucesso) {
-                alert(dados.erro || "Erro ao excluir a conta.");
-                btn.disabled = false;
-                btn.textContent = "🗑️ Excluir";
-                return;
+            if (resp.ok && dados.sucesso) {
+                document.querySelectorAll(`[data-musuario-id="${idMUsuario}"]`).forEach((el) => el.remove());
+            } else {
+                alert(dados.erro || "Erro ao remover conta.");
+                btnConta.disabled = false;
             }
-
-            document.querySelectorAll(`[data-musuario-id="${idMUsuario}"]`).forEach((el) => el.remove());
-        } catch (err) {
-            alert("Erro de conexão ao excluir conta.");
-            btn.disabled = false;
-        }
-    });
-
-    // Excluir Campanha
-    document.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".btn-excluir-campanha-admin");
-        if (!btn || btn.disabled) return;
-
-        const idCampanha = Number(btn.dataset.id);
-        const titulo = btn.dataset.titulo || "esta campanha";
-
-        if (!confirm(`Deseja excluir a campanha "${titulo}" e seus posts vinculados?`)) {
-            return;
         }
 
-        btn.disabled = true;
-        btn.textContent = "Excluindo...";
+        const btnCamp = e.target.closest(".btn-excluir-campanha-admin");
+        if (btnCamp && !btnCamp.disabled) {
+            const idCampanha = Number(btnCamp.dataset.id);
+            const titulo = btnCamp.dataset.titulo || "esta campanha";
+            if (!confirm(`Excluir a campanha "${titulo}"?`)) return;
 
-        try {
+            btnCamp.disabled = true;
             const resp = await fetch("painelAdmin.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ acao: "excluir_campanha", idCampanha })
             });
             const dados = await resp.json();
-
-            if (!resp.ok || !dados.sucesso) {
+            if (resp.ok && dados.sucesso) {
+                document.querySelector(`[data-campanha-id="${idCampanha}"]`)?.remove();
+            } else {
                 alert(dados.erro || "Erro ao excluir campanha.");
-                btn.disabled = false;
-                btn.textContent = "🗑️ Excluir Campanha";
-                return;
+                btnCamp.disabled = false;
             }
-
-            document.querySelector(`[data-campanha-id="${idCampanha}"]`)?.remove();
-        } catch (err) {
-            alert("Erro de conexão ao excluir campanha.");
-            btn.disabled = false;
         }
     });
 })();

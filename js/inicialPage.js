@@ -121,22 +121,34 @@ function criarPost(post, container) {
         ? String(post.fotoONG).trim()
         : "../img/jpg/ftPerfil.jpg";
 
+    const temOng = Number(post.idONG || 0) > 0;
+
+    const avatarHTML = temOng
+        ? `<a href="perfilONG.php?idONG=${post.idONG}" style="display: flex; flex-shrink: 0;">
+               <img
+                   src="${escaparHTML(fotoONG)}"
+                   alt="Foto de ${escaparHTML(post.nomeONG)}"
+                   onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
+               >
+           </a>`
+        : `<img
+               src="${escaparHTML(fotoONG)}"
+               alt="Foto de ${escaparHTML(post.nomeONG)}"
+               onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
+           >`;
+
+    const tituloAutorHTML = temOng
+        ? `<a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
+               ${escaparHTML(post.nomeONG)}
+           </a>`
+        : `${escaparHTML(post.nomeONG)}`;
+
     article.innerHTML = `
         <div class="post-header" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 14px;">
-                <a href="perfilONG.php?idONG=${post.idONG}" style="display: flex; flex-shrink: 0;">
-                    <img
-                        src="${escaparHTML(fotoONG)}"
-                        alt="Foto de ${escaparHTML(post.nomeONG)}"
-                        onerror="this.onerror=null; this.src='../img/jpg/ftPerfil.jpg';"
-                    >
-                </a>
+                ${avatarHTML}
                 <div style="display: flex; flex-direction: column;">
-                    <h3>
-                        <a href="perfilONG.php?idONG=${post.idONG}" style="color: inherit; text-decoration: none;">
-                            ${escaparHTML(post.nomeONG)}
-                        </a>
-                    </h3>
+                    <h3>${tituloAutorHTML}</h3>
                     <span>${data}</span>
                 </div>
             </div>
@@ -282,18 +294,58 @@ async function alternarCurtida(botao) {
     }
 }
 
+function normalizarFotoComentario(caminho) {
+    const foto = String(caminho || "").trim();
+    if (!foto || foto === "perfil.png" || foto === "img/perfil/perfil.png") {
+        return "../img/jpg/ftPerfil.jpg";
+    }
+    if (foto.startsWith("../") || foto.startsWith("http://") || foto.startsWith("https://")) {
+        return foto;
+    }
+    return "../" + foto.replace(/^\/+/, "");
+}
+
 // ADICIONA UM COMENTÁRIO COM SEGURANÇA
 function adicionarComentarioNaTela(lista, comentario) {
     const elemento = document.createElement("div");
     elemento.classList.add("comment");
+    elemento.dataset.comentarioId = comentario.idComentario;
+
+    const avatar = document.createElement("img");
+    avatar.classList.add("comment-avatar");
+    avatar.src = normalizarFotoComentario(comentario.fotoUsuario || comentario.fotoPerfil);
+    avatar.alt = `Foto de ${comentario.nomeUsuario || "Usuário"}`;
+    avatar.loading = "lazy";
+    avatar.onerror = function () {
+        this.onerror = null;
+        this.src = "../img/jpg/ftPerfil.jpg";
+    };
+
+    const corpo = document.createElement("div");
+    corpo.classList.add("comment-body");
+
+    const topo = document.createElement("div");
+    topo.classList.add("comment-header");
 
     const nome = document.createElement("strong");
     nome.textContent = comentario.nomeUsuario;
+    topo.appendChild(nome);
+
+    if (comentario.podeExcluir) {
+        const btnExcluir = document.createElement("button");
+        btnExcluir.type = "button";
+        btnExcluir.classList.add("comment-delete-btn");
+        btnExcluir.dataset.comentarioId = comentario.idComentario;
+        btnExcluir.title = "Excluir comentário";
+        btnExcluir.textContent = "🗑️";
+        topo.appendChild(btnExcluir);
+    }
 
     const texto = document.createElement("p");
     texto.textContent = comentario.conteudo;
 
-    elemento.append(nome, texto);
+    corpo.append(topo, texto);
+    elemento.append(avatar, corpo);
     lista.appendChild(elemento);
 }
 
@@ -374,7 +426,7 @@ function escaparHTML(texto) {
 }
 
 // CLIQUES
-document.addEventListener("click", function(event) {
+document.addEventListener("click", async function(event) {
     // CURTIR
     const likeButton = event.target.closest(".like-btn");
     if (likeButton) {
@@ -393,6 +445,47 @@ document.addEventListener("click", function(event) {
     const sendButton = event.target.closest(".send-comment");
     if (sendButton) {
         enviarComentario(sendButton);
+    }
+
+    // EXCLUIR COMENTÁRIO
+    const btnDelComment = event.target.closest(".comment-delete-btn");
+    if (btnDelComment && !btnDelComment.disabled) {
+        const idComentario = Number(btnDelComment.dataset.comentarioId);
+
+        if (!confirm("Deseja realmente excluir este comentário?")) {
+            return;
+        }
+
+        btnDelComment.disabled = true;
+
+        try {
+            const resp = await fetch("../php/excluirComentario.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idComentario })
+            });
+
+            const textoBruto = await resp.text();
+            let dados;
+            try {
+                dados = JSON.parse(textoBruto);
+            } catch (e) {
+                alert(`Erro HTTP ${resp.status}: ${textoBruto.slice(0, 180)}`);
+                btnDelComment.disabled = false;
+                return;
+            }
+
+            if (!resp.ok || !dados.sucesso) {
+                alert(dados.erro || "Não foi possível excluir o comentário.");
+                btnDelComment.disabled = false;
+                return;
+            }
+
+            btnDelComment.closest(".comment")?.remove();
+        } catch (erro) {
+            alert("Erro de rede ao acessar ../php/excluirComentario.php: " + erro.message);
+            btnDelComment.disabled = false;
+        }
     }
 
     // TENTAR NOVAMENTE

@@ -1,11 +1,15 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+ini_set("display_errors", "0");
 header("Content-Type: application/json; charset=UTF-8");
 
 require_once __DIR__ . "/conexao.php";
 
-function responder($status, $dados) {
+function responder($status, $dados)
+{
     http_response_code($status);
     echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     exit;
@@ -35,9 +39,6 @@ if ($conteudo === "" || mb_strlen($conteudo) > 500) {
 $idUsuario = (int) $_SESSION["usuario_id"];
 
 try {
-    // Todos os usuários autenticados podem comentar.
-    // A tabela comentarios exige um idUsuarioComum, então
-    // verificamos se o usuário já possui esse vínculo.
     $stmt = $conexao->prepare(
         "SELECT idUsuarioComum
         FROM UsuarioComum
@@ -51,8 +52,6 @@ try {
     $stmt->close();
 
     if (!$temUsuarioComum) {
-        // Cria o vínculo para contas de ONG ou administrador
-        // que ainda não tenham um registro em UsuarioComum.
         $stmt = $conexao->prepare(
             "INSERT INTO UsuarioComum (idMoldeUsuario)
             VALUES (?)"
@@ -85,13 +84,14 @@ try {
     $idComentario = $stmt->insert_id;
     $stmt->close();
 
-    // Devolve o comentário salvo para exibição imediata.
+    // Devolve o comentário salvo para exibição imediata com foto e permissão de exclusão.
     $stmt = $conexao->prepare(
         "SELECT
             c.idComentario,
             c.conteudo,
             c.dataComentario,
-            mu.nome AS nomeUsuario
+            mu.nome AS nomeUsuario,
+            mu.fotoPerfil AS fotoUsuario
         FROM comentarios c
         INNER JOIN UsuarioComum uc
             ON uc.idUsuarioComum = c.idUsuarioComum
@@ -104,6 +104,16 @@ try {
     $resultado = $stmt->get_result();
     $comentario = $resultado->fetch_assoc();
     $stmt->close();
+
+    if ($comentario) {
+        $foto = trim((string) ($comentario["fotoUsuario"] ?? ""));
+        if ($foto === "" || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], true)) {
+            $comentario["fotoUsuario"] = "../img/jpg/ftPerfil.jpg";
+        } elseif (strpos($foto, "../") !== 0 && strpos($foto, "http://") !== 0 && strpos($foto, "https://") !== 0) {
+            $comentario["fotoUsuario"] = "../" . ltrim($foto, "/");
+        }
+        $comentario["podeExcluir"] = true;
+    }
 
     responder(201, ["comentario" => $comentario]);
 

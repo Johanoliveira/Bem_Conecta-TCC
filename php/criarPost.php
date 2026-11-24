@@ -227,24 +227,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $idONGPost = $idONG;
 
+    $idAutorAdmin = null;
+
     if ($erro === "" && $nivel === 3 && $idONGPost === null) {
-
-        // Para o administrador, utiliza a ONG da campanha
-        // selecionada, quando houver.
+        // Se o admin escolheu uma campanha, vincula o post à ONG dona da campanha
         if ($idCampanha !== null) {
-            $sqlONG = "
-                SELECT idONG
-                FROM campanhas
-                WHERE idCampanha = ?
-                LIMIT 1
-            ";
-
-            $stmtONG = $conexao->prepare($sqlONG);
+            $stmtONG = $conexao->prepare("SELECT idONG FROM campanhas WHERE idCampanha = ? LIMIT 1");
             $stmtONG->bind_param("i", $idCampanha);
             $stmtONG->execute();
-
             $dadosONG = $stmtONG->get_result()->fetch_assoc();
-
             $stmtONG->close();
 
             if ($dadosONG) {
@@ -252,8 +243,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
+        // Se não escolheu campanha, publica em nome do próprio Administrador
         if ($idONGPost === null) {
-            $erro = "Para publicar sem uma campanha, sua conta precisa estar vinculada a uma ONG.";
+            $idAutorAdmin = (int) $_SESSION["usuario_id"];
         }
     }
 
@@ -326,6 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $sqlPost = "
             INSERT INTO posts (
                 idONG,
+                idMUsuario,
                 idCampanha,
                 titulo,
                 conteudo,
@@ -374,71 +367,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Remove a imagem se o registro não tiver sido criado.
         if ($erro !== "" && $caminhoImagem !== null) {
             $arquivoSalvo = __DIR__ . "/../uploadFoto/posts/"
-                . basename($caminhoImagem);
-
-            if (is_file($arquivoSalvo)) {
-                unlink($arquivoSalvo);
-            }
-        }
-    }
-
-    // -----------------------------------------
-    // 4.5 INSERIR PUBLICAÇÃO NO BANCO
-    // -----------------------------------------
-
-    if ($erro === "") {
-
-        $sqlPost = "
-            INSERT INTO posts (
-                idONG,
-                idCampanha,
-                titulo,
-                conteudo,
-                descricao,
-                palavrasChave
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-        ";
-
-        $stmtPost = $conexao->prepare($sqlPost);
-
-        if (!$stmtPost) {
-
-            error_log("Erro ao preparar publicação: " . $conexao->error);
-            $erro = "Não foi possível preparar a publicação.";
-
-        } else {
-
-            $stmtPost->bind_param(
-                "iissss",
-                $idONGPost,
-                $idCampanha,
-                $titulo,
-                $caminhoImagem,
-                $descricao,
-                $palavrasChave
-            );
-
-            if ($stmtPost->execute()) {
-
-                $stmtPost->close();
-
-                header("Location: inicialPage.php?post=criado");
-                exit;
-
-            } else {
-
-                error_log("Erro ao criar post: " . $stmtPost->error);
-
-                $erro = "Não foi possível publicar. Tente novamente.";
-
-                $stmtPost->close();
-            }
-        }
-
-        // Remove a imagem se o registro não tiver sido criado.
-        if ($erro !== "" && $caminhoImagem !== null) {
-            $arquivoSalvo = __DIR__ . "/../img/posts/"
                 . basename($caminhoImagem);
 
             if (is_file($arquivoSalvo)) {
