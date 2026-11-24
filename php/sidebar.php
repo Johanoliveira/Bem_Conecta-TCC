@@ -78,7 +78,7 @@ $_sbPaginaAtual = basename($_SERVER["PHP_SELF"]);
             <span class="sb-texto">Página Inicial</span>
         </a>
 
-        <?php if ($_sbEhUsuarioComum == 2): ?>
+        <?php if (($_hdrNivel ?? 0) === 2 && ($_hdrEhOng ?? false)): ?>
             <a href="minhasArrecadacoes.php" class="<?php echo $_sbPaginaAtual === 'minhasArrecadacoes.php' ? 'ativo' : ''; ?>" title="Minhas Arrecadações">
                 <span class="sb-icone">💰</span>
                 <span class="sb-texto">Minhas Arrecadações</span>
