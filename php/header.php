@@ -8,9 +8,16 @@ require_once __DIR__ . "/conexao.php";
 $_hdrUsuarioId = (int) ($_SESSION["usuario_id"] ?? 0);
 $_hdrFoto = $_SESSION["usuario_foto"] ?? "img/jpg/ftPerfil.jpg";
 $_hdrNivel = 1;
+$_hdrEhOng = false;
 
 if ($_hdrUsuarioId > 0 && isset($conexao)) {
-    $_stmtHdr = $conexao->prepare("SELECT fotoPerfil, nivelDeSeguranca FROM MoldeUsuario WHERE idMUsuario = ? LIMIT 1");
+    $_stmtHdr = $conexao->prepare("
+        SELECT mu.fotoPerfil, mu.nivelDeSeguranca, o.idONG
+        FROM MoldeUsuario mu
+        LEFT JOIN ONGs o ON o.idMoldeUsuario = mu.idMUsuario
+        WHERE mu.idMUsuario = ?
+        LIMIT 1
+    ");
     if ($_stmtHdr) {
         $_stmtHdr->bind_param("i", $_hdrUsuarioId);
         $_stmtHdr->execute();
@@ -19,6 +26,7 @@ if ($_hdrUsuarioId > 0 && isset($conexao)) {
 
         if ($_dadosHdr) {
             $_hdrNivel = (int) ($_dadosHdr["nivelDeSeguranca"] ?? 1);
+            $_hdrEhOng = ($_dadosHdr["idONG"] !== null);
             if (!empty($_dadosHdr["fotoPerfil"]) && !in_array($_dadosHdr["fotoPerfil"], ["perfil.png", "img/perfil/perfil.png"], true)) {
                 $_hdrFoto = $_dadosHdr["fotoPerfil"];
                 $_SESSION["usuario_foto"] = $_hdrFoto;
@@ -47,15 +55,26 @@ $_hdrPaginaAtual = basename($_SERVER["PHP_SELF"]);
         <a href="inicialPage.php" class="<?php echo $_hdrPaginaAtual === 'inicialPage.php' ? 'ativo' : ''; ?>">
             Início
         </a>
+        <?php if ($_hdrNivel === 3): ?>
+            <a href="painelAdmin.php" class="<?php echo $_hdrPaginaAtual === 'painelAdmin.php' ? 'ativo' : ''; ?>">
+                🛡️ Painel Admin
+            </a>
+        <?php endif; ?>
         <a href="campanhas.php" class="<?php echo in_array($_hdrPaginaAtual, ['campanhas.php', 'criarCampanha.php'], true) ? 'ativo' : ''; ?>">
             Campanhas
         </a>
         <a href="ongs.php" class="<?php echo in_array($_hdrPaginaAtual, ['ongs.php', 'perfilONG.php'], true) ? 'ativo' : ''; ?>">
             ONGs
         </a>
-        <a href="minhasDoacoes.php" class="<?php echo $_hdrPaginaAtual === 'minhasDoacoes.php' ? 'ativo' : ''; ?>">
-            Minhas Doações
-        </a>
+        <?php if ($_hdrEhOng): ?>
+            <a href="minhasArrecadacoes.php" class="<?php echo $_hdrPaginaAtual === 'minhasArrecadacoes.php' ? 'ativo' : ''; ?>">
+                Minhas Arrecadações
+            </a>
+        <?php else: ?>
+            <a href="minhasDoacoes.php" class="<?php echo $_hdrPaginaAtual === 'minhasDoacoes.php' ? 'ativo' : ''; ?>">
+                Minhas Doações
+            </a>
+        <?php endif; ?>
     </nav>
 
     <div class="top-actions">

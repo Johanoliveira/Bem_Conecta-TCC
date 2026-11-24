@@ -290,7 +290,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             } else {
 
-                $diretorio = __DIR__ . "/../img/posts/";
+                $diretorio = __DIR__ . "/../uploadFoto/posts/";
 
                 if (
                     !is_dir($diretorio) &&
@@ -308,11 +308,76 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $destino = $diretorio . $nomeArquivo;
 
                     if (move_uploaded_file($temporario, $destino)) {
-                        $caminhoImagem = "../img/posts/" . $nomeArquivo;
+                        $caminhoImagem = "../uploadFoto/posts/" . $nomeArquivo;
                     } else {
                         $erro = "Não foi possível salvar a imagem.";
                     }
                 }
+            }
+        }
+    }
+
+    // -----------------------------------------
+    // 4.5 INSERIR PUBLICAÇÃO NO BANCO
+    // -----------------------------------------
+
+    if ($erro === "") {
+
+        $sqlPost = "
+            INSERT INTO posts (
+                idONG,
+                idCampanha,
+                titulo,
+                conteudo,
+                descricao,
+                palavrasChave
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        ";
+
+        $stmtPost = $conexao->prepare($sqlPost);
+
+        if (!$stmtPost) {
+
+            error_log("Erro ao preparar publicação: " . $conexao->error);
+            $erro = "Não foi possível preparar a publicação.";
+
+        } else {
+
+            $stmtPost->bind_param(
+                "iissss",
+                $idONGPost,
+                $idCampanha,
+                $titulo,
+                $caminhoImagem,
+                $descricao,
+                $palavrasChave
+            );
+
+            if ($stmtPost->execute()) {
+
+                $stmtPost->close();
+
+                header("Location: inicialPage.php?post=criado");
+                exit;
+
+            } else {
+
+                error_log("Erro ao criar post: " . $stmtPost->error);
+
+                $erro = "Não foi possível publicar. Tente novamente.";
+
+                $stmtPost->close();
+            }
+        }
+
+        // Remove a imagem se o registro não tiver sido criado.
+        if ($erro !== "" && $caminhoImagem !== null) {
+            $arquivoSalvo = __DIR__ . "/../uploadFoto/posts/"
+                . basename($caminhoImagem);
+
+            if (is_file($arquivoSalvo)) {
+                unlink($arquivoSalvo);
             }
         }
     }

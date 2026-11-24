@@ -2,12 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById("sidebarLateral");
     const btnMinimizar = document.getElementById("btnMinimizarSidebar");
 
-    if (!sidebar || !btnMinimizar) return;
+    if (!sidebar || !btnMinimizar || btnMinimizar.dataset.bound === "true") return;
+    btnMinimizar.dataset.bound = "true";
 
     function atualizarEstadoVisual(minimizada) {
         sidebar.classList.toggle("minimizada", minimizada);
-        btnMinimizar.textContent = minimizada ? "▶" : "◀";
-        btnMinimizar.title = minimizada ? "Expandir menu" : "Minimizar menu";
+        btnMinimizar.textContent = minimizada ? "☰" : "◀";
+        btnMinimizar.title = minimizada ? "Abrir menu" : "Minimizar menu";
     }
 
     // Restaura a escolha anterior do usuário

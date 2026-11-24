@@ -21,7 +21,7 @@ if ($idPost <= 0) {
 }
 
 try {
-    // 1. Busca nível de segurança e idONG do usuário logado (mesma lógica do criarPost.php)
+    // 1. Busca nível de segurança e idONG do usuário logado
     $sqlUsuario = "
         SELECT
             mu.nivelDeSeguranca,
@@ -101,8 +101,13 @@ try {
 
     $conexao->commit();
 
-    // 4. Apaga a imagem física da pasta ../img/posts/ salva pelo criarPost.php
-    if (strpos($caminhoImagem, "../img/posts/") === 0) {
+    // 4. Apaga a imagem física da pasta ../uploadFoto/posts/ (e mantém compatibilidade com ../img/posts/)
+    if (strpos($caminhoImagem, "../uploadFoto/posts/") === 0) {
+        $arquivoFisico = __DIR__ . "/../uploadFoto/posts/" . basename($caminhoImagem);
+        if (is_file($arquivoFisico)) {
+            unlink($arquivoFisico);
+        }
+    } elseif (strpos($caminhoImagem, "../img/posts/") === 0) {
         $arquivoFisico = __DIR__ . "/../img/posts/" . basename($caminhoImagem);
         if (is_file($arquivoFisico)) {
             unlink($arquivoFisico);

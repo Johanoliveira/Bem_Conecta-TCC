@@ -40,6 +40,31 @@ $stmt->execute();
 $ong = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+$usuarioId = (int) $_SESSION["usuario_id"];
+$podeFavoritar = false;
+$ongFavoritada = false;
+
+$stmtUc = $conexao->prepare("SELECT idUsuarioComum FROM UsuarioComum WHERE idMoldeUsuario = ? LIMIT 1");
+if ($stmtUc) {
+    $stmtUc->bind_param("i", $usuarioId);
+    $stmtUc->execute();
+    $ucRow = $stmtUc->get_result()->fetch_assoc();
+    $stmtUc->close();
+
+    if ($ucRow) {
+        $podeFavoritar = true;
+        $idUsuarioComum = (int) $ucRow["idUsuarioComum"];
+
+        $stmtFav = $conexao->prepare("SELECT 1 FROM favoritos WHERE idUsuarioComum = ? AND idONG = ? LIMIT 1");
+        if ($stmtFav) {
+            $stmtFav->bind_param("ii", $idUsuarioComum, $idONG);
+            $stmtFav->execute();
+            $ongFavoritada = $stmtFav->get_result()->num_rows > 0;
+            $stmtFav->close();
+        }
+    }
+}
+
 if (!$ong) {
     header("Location: ongs.php");
     exit;
@@ -139,7 +164,20 @@ $stmtPosts->close();
                     </p>
                 </div>
 
-                <div class="acoes-perfil">
+                <div class="acoes-perfil" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <?php if ($podeFavoritar): ?>
+                        <button
+                            type="button"
+                            id="btnFavoritarPerfilOng"
+                            data-id-ong="<?php echo (int) $idONG; ?>"
+                            class="botao-editar"
+                            style="background: <?php echo $ongFavoritada ? '#e63946' : '#ffffff'; ?>; color: <?php echo $ongFavoritada ? '#ffffff' : '#1b9e2a'; ?>; border: 2px solid <?php echo $ongFavoritada ? '#e63946' : '#1b9e2a'; ?>;"
+                        >
+                            <i class="fa-<?php echo $ongFavoritada ? 'solid' : 'regular'; ?> fa-heart"></i>
+                            <span><?php echo $ongFavoritada ? 'ONG Favoritada' : 'Favoritar ONG'; ?></span>
+                        </button>
+                    <?php endif; ?>
+
                     <a href="../html/pagamento.html" class="botao-editar" style="text-decoration: none;">
                         <i class="fa-solid fa-hand-holding-heart"></i> Doar para esta ONG
                     </a>
@@ -311,6 +349,44 @@ $stmtPosts->close();
 
     </section>
 </main>
+
+<script>
+document.getElementById("btnFavoritarPerfilOng")?.addEventListener("click", async function () {
+    const btn = this;
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch("favoritarOng.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idONG: Number(btn.dataset.idOng) })
+        });
+        const dados = await resp.json();
+
+        if (!resp.ok || !dados.sucesso) {
+            alert(dados.erro || "Não foi possível favoritar esta ONG.");
+            return;
+        }
+
+        const fav = Boolean(dados.favoritado);
+        btn.style.background = fav ? "#e63946" : "#ffffff";
+        btn.style.color = fav ? "#ffffff" : "#1b9e2a";
+        btn.style.borderColor = fav ? "#e63946" : "#1b9e2a";
+        btn.querySelector("i").className = fav ? "fa-solid fa-heart" : "fa-regular fa-heart";
+        btn.querySelector("span").textContent = fav ? "ONG Favoritada" : "Favoritar ONG";
+
+        const contadorSidebar = document.getElementById("sbContadorFavoritas");
+        if (contadorSidebar && typeof dados.totalFavoritos === "number") {
+            contadorSidebar.textContent = String(dados.totalFavoritos);
+        }
+    } catch (err) {
+        alert("Erro de conexão ao atualizar favoritos.");
+    } finally {
+        btn.disabled = false;
+    }
+});
+</script>
 
 </body>
 </html>

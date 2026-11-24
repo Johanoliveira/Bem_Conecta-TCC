@@ -10,6 +10,17 @@ $_sbTotalDoado = 0.0;
 $_sbCampanhasApoiadas = 0;
 $_sbOngsFavoritas = 0;
 
+$_sbEhUsuarioComum = false;
+if ($_sbUsuarioId > 0 && isset($conexao)) {
+    $stmtSbTipo = $conexao->prepare("SELECT 1 FROM UsuarioComum WHERE idMoldeUsuario = ? LIMIT 1");
+    if ($stmtSbTipo) {
+        $stmtSbTipo->bind_param("i", $_sbUsuarioId);
+        $stmtSbTipo->execute();
+        $_sbEhUsuarioComum = $stmtSbTipo->get_result()->num_rows > 0;
+        $stmtSbTipo->close();
+    }
+}
+
 if ($_sbUsuarioId > 0 && isset($conexao)) {
     $sqlImpacto = "
         SELECT
@@ -67,15 +78,36 @@ $_sbPaginaAtual = basename($_SERVER["PHP_SELF"]);
             <span class="sb-texto">Página Inicial</span>
         </a>
 
+        <?php if (!$_sbEhUsuarioComum): ?>
+            <a href="minhasArrecadacoes.php" class="<?php echo $_sbPaginaAtual === 'minhasArrecadacoes.php' ? 'ativo' : ''; ?>" title="Minhas Arrecadações">
+                <span class="sb-icone">💰</span>
+                <span class="sb-texto">Minhas Arrecadações</span>
+            </a>
+        <?php endif; ?>
+
+        <?php if ((int) ($_SESSION["nivel_seguranca"] ?? 0) === 3 || ($_hdrNivel ?? 0) === 3): ?>
+         <a href="painelAdmin.php" class="<?php echo $_sbPaginaAtual === 'painelAdmin.php' ? 'ativo' : ''; ?>" title="Painel Admin">
+             <span class="sb-icone">🛡️</span>
+             <span class="sb-texto">Painel Admin</span>
+         </a>
+        <?php endif; ?>
+
         <a href="minhasDoacoes.php" class="<?php echo $_sbPaginaAtual === 'minhasDoacoes.php' ? 'ativo' : ''; ?>" title="Minhas Doações">
             <span class="sb-icone">❤️</span>
             <span class="sb-texto">Minhas Doações</span>
         </a>
 
-        <a href="ongs.php" class="<?php echo in_array($_sbPaginaAtual, ['ongs.php', 'perfilONG.php'], true) ? 'ativo' : ''; ?>" title="ONGs Favoritas">
-            <span class="sb-icone">📌</span>
-            <span class="sb-texto">ONGs Favoritas</span>
-        </a>
+        <?php if ($_sbEhUsuarioComum): ?>
+            <a href="ongs.php?favoritas=1" class="<?php echo in_array($_sbPaginaAtual, ['ongs.php', 'perfilONG.php'], true) ? 'ativo' : ''; ?>" title="ONGs Favoritas">
+                <span class="sb-icone">📌</span>
+                <span class="sb-texto">ONGs Favoritas</span>
+            </a>
+        <?php else: ?>
+            <a href="ongs.php" class="<?php echo in_array($_sbPaginaAtual, ['ongs.php', 'perfilONG.php'], true) ? 'ativo' : ''; ?>" title="ONGs Parceiras">
+                <span class="sb-icone">🏢</span>
+                <span class="sb-texto">ONGs Parceiras</span>
+            </a>
+        <?php endif; ?>
 
         <a href="campanhas.php" class="<?php echo in_array($_sbPaginaAtual, ['campanhas.php', 'criarCampanha.php'], true) ? 'ativo' : ''; ?>" title="Campanhas">
             <span class="sb-icone">📄</span>
@@ -105,11 +137,12 @@ $_sbPaginaAtual = basename($_SERVER["PHP_SELF"]);
             <strong><?php echo $_sbCampanhasApoiadas; ?></strong>
             campanhas apoiadas
         </p>
-
-        <p>
-            <strong><?php echo $_sbOngsFavoritas; ?></strong>
-            ONGs favoritas
-        </p>
+        <?php if ($_sbEhUsuarioComum): ?>
+            <p>
+                <strong id="sbContadorFavoritas"><?php echo $_sbOngsFavoritas; ?></strong>
+                ONGs favoritas
+            </p>
+        <?php endif; ?>
     </div>
 </aside>
 

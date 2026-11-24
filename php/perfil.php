@@ -499,15 +499,25 @@ if (empty($foto) || in_array($foto, ["perfil.png", "img/perfil/perfil.png"], tru
             <!-- ESTATÍSTICAS -->
             <?php if ($nivel >= 2): ?>
                 <div class="estatisticas">
-                    <div class="card-estatistica">
+                    <a
+                        href="minhasArrecadacoes.php"
+                        class="card-estatistica"
+                        title="Abrir painel de Minhas Arrecadações"
+                        style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(27, 158, 42, 0.22)';"
+                        onmouseout="this.style.transform=''; this.style.boxShadow='';"
+                    >
                         <div class="icone verde">
                             <i class="fa-solid fa-hand-holding-heart"></i>
                         </div>
                         <div>
                             <span>Total Arrecadado</span>
                             <h2>R$ <?php echo number_format($totalArrecadadoGeral, 2, ",", "."); ?></h2>
+                            <small style="display: block; margin-top: 4px; color: #1b9e2a; font-weight: 700; font-size: 0.8rem;">
+                                Ver detalhes →
+                            </small>
                         </div>
-                    </div>
+                    </a>
 
                     <div class="card-estatistica">
                         <div class="icone">
