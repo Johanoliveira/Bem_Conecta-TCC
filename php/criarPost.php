@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -178,9 +177,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     SELECT idCampanha
                     FROM campanhas
                     WHERE idCampanha = ?
-                      AND idONG = ? 
-                      AND status = 'ativa' 
-                      AND (dataFim IS NULL 
+                      AND idONG = ?
+                      AND status = 'ativa'
+                      AND (dataFim IS NULL
                       OR dataFim > NOW())
                     LIMIT 1
                 ";
@@ -197,9 +196,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $sqlVerifica = "
                     SELECT idCampanha
                     FROM campanhas
-                    WHERE idCampanha = ? 
-                        AND status = 'ativa' 
-                        AND (dataFim IS NULL 
+                    WHERE idCampanha = ?
+                        AND status = 'ativa'
+                        AND (dataFim IS NULL
                         OR dataFim > NOW())
                     LIMIT 1
                 ";
@@ -229,9 +228,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $idAutorAdmin = null;
 
-    if ($erro === "" && $nivel === 3 && $idONGPost === null) {
-        // Se o admin escolheu uma campanha, vincula o post à ONG dona da campanha
-        if ($idCampanha !== null) {
+    if ($erro === "" && $nivel === 3) {
+        $idAutorAdmin = (int) $_SESSION["usuario_id"];
+
+        if ($idONGPost === null && $idCampanha !== null) {
             $stmtONG = $conexao->prepare("SELECT idONG FROM campanhas WHERE idCampanha = ? LIMIT 1");
             $stmtONG->bind_param("i", $idCampanha);
             $stmtONG->execute();
@@ -241,11 +241,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($dadosONG) {
                 $idONGPost = (int) $dadosONG["idONG"];
             }
-        }
-
-        // Se não escolheu campanha, publica em nome do próprio Administrador
-        if ($idONGPost === null) {
-            $idAutorAdmin = (int) $_SESSION["usuario_id"];
         }
     }
 
@@ -325,7 +320,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 descricao,
                 palavrasChave
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ";
 
         $stmtPost = $conexao->prepare($sqlPost);
@@ -338,8 +333,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
 
             $stmtPost->bind_param(
-                "iissss",
+                "iiissss",
                 $idONGPost,
+                $idAutorAdmin,
                 $idCampanha,
                 $titulo,
                 $caminhoImagem,
@@ -435,7 +431,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 placeholder="Ex.: Ajude nossa campanha de materiais escolares"
             >
 
-        
+
         <label>Imagem da publicação</label>
 
         <input
@@ -461,7 +457,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </button>
         </div>
 
-        
+
 
         <!-- Tela após confirmar: somente a imagem pronta e dois botões -->
         <div id="imagem-pronta" class="imagem-pronta" hidden>

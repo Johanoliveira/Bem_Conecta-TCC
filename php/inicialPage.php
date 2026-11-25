@@ -97,7 +97,7 @@ if ($resDestaques) {
     <!-- FEED CENTRAL -->
     <main class="feed">
         <section class="welcome-card">
-            <h2>Bem-vindo de volta, <?php echo htmlspecialchars($nome); ?>!</h2>
+            <h2>Bem-vindo ao Bem Conecta, <?php echo htmlspecialchars($nome); ?>!</h2>
 
             <p>
                 Veja as campanhas mais recentes e continue apoiando
